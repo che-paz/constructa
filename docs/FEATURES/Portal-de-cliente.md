@@ -6,7 +6,7 @@ Clientes sin visibilidad generan desconfianza y disputas.
 
 ## Estado actual
 ```
-🔲 NO INICIADO | Sprint 02 | Depende: Módulos 01, 05
+🟡 MVP BASE | Sprint 02 ✅ | Depende: Módulos 01, 05
 ```
 
 ## Funcionalidades MVP
@@ -26,6 +26,6 @@ Clientes sin visibilidad generan desconfianza y disputas.
 `projects.client_token`, `payments`, `photos`, `stages`
 
 ## Criterio de finalización
-- [ ] Cliente accede con link/token
-- [ ] Ve avance y pagos en tiempo real
-- [ ] No accede a datos de otros proyectos
+- [x] Cliente accede con link/token
+- [x] Ve avance y pagos en tiempo real
+- [x] No accede a datos de otros proyectos

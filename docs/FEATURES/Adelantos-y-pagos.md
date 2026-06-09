@@ -6,12 +6,12 @@ Conflictos con clientes por pagos sin comprobante ni saldo actualizado.
 
 ## Estado actual
 ```
-🔲 NO INICIADO | Sprint 02 | Depende: Módulo 01
+🟡 MVP BASE | Sprint 02 ✅ | Depende: Módulo 01
 ```
 
 ## Funcionalidades MVP
 - Registro: fecha, monto (GTQ), método, comprobante (Storage)
-- Saldo automático: anticipo - pagos recibidos
+- Saldo automático: presupuesto total − pagos registrados
 - Historial por proyecto
 - Alertas de pagos pendientes
 
@@ -26,6 +26,6 @@ DELETE     /api/payments/[id]  (soft delete)
 `payments`
 
 ## Criterio de finalización
-- [ ] Constructor registra pago con comprobante
-- [ ] Saldo se actualiza sin cálculo manual
-- [ ] Cliente ve historial en portal (Módulo 06)
+- [x] Constructor registra pago con comprobante
+- [x] Saldo se actualiza sin cálculo manual
+- [x] Cliente ve historial en portal (Módulo 06)

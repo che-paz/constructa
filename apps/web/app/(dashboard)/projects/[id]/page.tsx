@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import type { Project, ProjectSummary } from "@constructa/types";
 import { getAuthContext } from "@/lib/auth/get-organization";
+import { computePaymentBalance } from "@/lib/payments/balance";
+import { attachReceiptUrls } from "@/lib/payments/receipt-url";
 import { createClient } from "@/lib/supabase/server";
 import { ProjectDashboard } from "@/components/modules/projects/project-dashboard";
 
@@ -39,6 +41,22 @@ export default async function ProjectDetailPage({ params }: Props) {
         )
       : 0;
 
+  const { data: payments } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("project_id", params.id)
+    .eq("organization_id", auth.organization.id)
+    .is("deleted_at", null)
+    .order("payment_date", { ascending: false });
+
+  const balance = computePaymentBalance(
+    project.total_budget,
+    project.client_advance,
+    payments ?? [],
+  );
+
+  const paymentsWithUrls = await attachReceiptUrls(payments ?? []);
+
   const summary: ProjectSummary = {
     id: project.id,
     name: project.name,
@@ -49,10 +67,28 @@ export default async function ProjectDetailPage({ params }: Props) {
     stages_count: stagesList.length,
   };
 
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+  const clientPortalUrl = project.client_token
+    ? `${appUrl}/client/${project.client_token}`
+    : null;
+
   return (
     <ProjectDashboard
-      project={project as Project & { stages?: { id: string; name: string; progress_pct: number; status: string }[] }}
+      project={
+        project as Project & {
+          stages?: {
+            id: string;
+            name: string;
+            progress_pct: number;
+            status: string;
+          }[];
+        }
+      }
       summary={summary}
+      balance={balance}
+      payments={paymentsWithUrls}
+      clientPortalUrl={clientPortalUrl}
     />
   );
 }

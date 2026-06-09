@@ -51,7 +51,25 @@ export const CreateProjectSchema = z.object({
 
 export const UpdateProjectSchema = CreateProjectSchema.partial();
 
+export const PaymentMethodSchema = z.enum([
+  "efectivo",
+  "transferencia",
+  "cheque",
+  "tarjeta",
+  "otro",
+]);
+
+export const CreatePaymentSchema = z.object({
+  amount: z.number().positive("El monto debe ser mayor a cero"),
+  payment_date: z.string().date("Fecha inválida"),
+  payment_method: PaymentMethodSchema,
+  reference_number: z.string().max(100).optional().nullable(),
+  description: z.string().max(500).optional().nullable(),
+  receipt_url: z.string().max(500).optional().nullable(),
+});
+
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type SignupInput = z.infer<typeof SignupSchema>;
 export type CreateProjectInput = z.infer<typeof CreateProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof UpdateProjectSchema>;
+export type CreatePaymentInput = z.infer<typeof CreatePaymentSchema>;

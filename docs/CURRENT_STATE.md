@@ -7,7 +7,7 @@
 ## Estado global: FASE 1 — FUNDAMENTOS (Sprint 02)
 
 ```
-[██████████████░░░░░░] 40% — Sprint 01 completo · Sprint 02 listo para iniciar
+[██████████████████░░] 55% — Sprint 02 completo · listo para Sprint 03
 ```
 
 ---
@@ -16,13 +16,14 @@
 
 - **Fecha:** 2026-06-09
 - **Qué se hizo:**
-  - Sprint 01 completado y verificado en producción local
-  - Auth: Server Actions (`/login`, `/signup`) — funciona sin depender de JS cliente
-  - Onboarding: service role server-side para bootstrap de org (fix RLS)
-  - Fix: `NEXT_PUBLIC_SUPABASE_ANON_KEY` corrupta en `.env.local`
-  - CRUD Proyectos operativo end-to-end
-- **Archivos clave:** `lib/auth/actions.ts`, `lib/supabase/admin.ts`, `lib/auth/onboarding.ts`
-- **Próxima tarea inmediata:** Sprint 02 — Módulo Pagos + Portal del Cliente + tests RLS
+  - Módulo 05 Pagos: CRUD vía API (`/api/projects/[id]/payments`, balance, soft delete)
+  - Upload comprobantes → Supabase Storage bucket `payment-receipts`
+  - Saldo automático: `client_advance − pagos registrados`
+  - Módulo 06 Portal del Cliente: `/client/[token]` y `/client/[token]/payments`
+  - Tests RLS: 5 tests de aislamiento org A/B + 1 unit test de balance
+  - Migración `20250609100009_storage_receipts.sql` aplicada al cloud
+- **Archivos clave:** `app/api/projects/[id]/payments/`, `app/client/[token]/`, `components/modules/payments/`, `tests/rls/org-isolation.test.ts`
+- **Próxima tarea inmediata:** Sprint 03 — Materiales + Cronograma
 
 ---
 
@@ -35,14 +36,14 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-00.md`
 Estado: ✅ COMPLETADO → ver `archive/sprint-01.md`
 
 **Sprint 02 — Pagos + Portal del Cliente**  
-Estado: 🟡 EN CURSO
+Estado: ✅ COMPLETADO → ver `archive/sprint-02.md`
 
 | Tarea | Estado | Notas |
 |---|---|---|
-| Módulo Pagos (Módulo 05) | 🔲 PENDIENTE | Registro, historial, saldos |
-| Upload comprobantes (Storage) | 🔲 PENDIENTE | Supabase Storage |
-| Portal del Cliente (Módulo 06) | 🔲 PENDIENTE | Acceso con `client_token` |
-| Tests RLS aislamiento orgs | 🔲 PENDIENTE | Crítico seguridad |
+| Módulo Pagos (Módulo 05) | ✅ DONE | CRUD, historial, saldo automático |
+| Upload comprobantes (Storage) | ✅ DONE | Bucket `payment-receipts` |
+| Portal del Cliente (Módulo 06) | ✅ DONE | Acceso con `client_token` |
+| Tests RLS aislamiento orgs | ✅ DONE | `pnpm test` — 6 tests verdes |
 
 ## Módulos: estado de desarrollo
 
@@ -52,8 +53,8 @@ Estado: 🟡 EN CURSO
 | 02 Cronograma Inteligente | 🔲 NO INICIADO | Sprint 03 | |
 | 03 Control de Materiales | 🔲 NO INICIADO | Sprint 03 | Mayor ROI percibido |
 | 04 Control de Personal | 🔲 NO INICIADO | Sprint 04 | |
-| 05 Adelantos y Pagos | 🔲 NO INICIADO | Sprint 02 | |
-| 06 Portal del Cliente | 🔲 NO INICIADO | Sprint 02 | |
+| 05 Adelantos y Pagos | 🟡 MVP BASE | Sprint 02 | CRUD + comprobantes + saldo |
+| 06 Portal del Cliente | 🟡 MVP BASE | Sprint 02 | Token público, avance + pagos |
 | 07–14 | 🔲 NO INICIADO | Sprint 06+ | Post-MVP |
 
 ---
@@ -72,6 +73,8 @@ Estado: 🟡 EN CURSO
 | CSS | Tailwind CSS + shadcn/ui | CSS Modules | Velocidad de desarrollo |
 | Monorepo | pnpm workspaces | npm, yarn | Performance y hoisting controlado |
 | Onboarding bootstrap | Service role server-side | Client anon insert | RLS bloquea insert sin sesión activa |
+| Comprobantes de pago | Storage path en `receipt_url` | URL firmada persistida | Signed URLs se generan al leer |
+| Portal del cliente | Admin client server-side por token | RLS público anon | Sin auth; filtra campos sensibles |
 
 ---
 
@@ -91,7 +94,7 @@ Estado: 🟡 EN CURSO
 |---|---|---|---|
 | WhatsApp API costos altos | Media | Alto | Evaluar en Fase 4 |
 | Adopción en campo (supervisores) | Alta | Alto | WhatsApp + voz como canales |
-| RLS mal configurado | Media | Crítico | Tests automáticos de aislamiento |
+| RLS mal configurado | Media | Crítico | Tests automáticos de aislamiento ✅ |
 | Scope creep en MVP | Alta | Alto | Plan Básico = 6 módulos máximo |
 
 ---
@@ -101,6 +104,7 @@ Estado: 🟡 EN CURSO
 ```bash
 cd /Users/ch3/Desktop/CONSTRUCTA
 pnpm dev:3001          # CONSTRUCTA en localhost:3001
+pnpm test              # tests RLS + unit
 pnpm db:status         # verificar migraciones
 pnpm db:push           # aplicar nuevas migraciones al cloud
 ```

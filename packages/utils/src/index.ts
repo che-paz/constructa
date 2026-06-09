@@ -31,3 +31,45 @@ const STATUS_LABELS: Record<string, string> = {
 export function projectStatusLabel(status: string): string {
   return STATUS_LABELS[status] ?? status;
 }
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  efectivo: "Efectivo",
+  transferencia: "Transferencia",
+  cheque: "Cheque",
+  tarjeta: "Tarjeta",
+  otro: "Otro",
+};
+
+export function paymentMethodLabel(method: string | null): string {
+  if (!method) return "—";
+  return PAYMENT_METHOD_LABELS[method] ?? method;
+}
+
+export function calculatePaymentBalance(
+  totalBudget: number | null | undefined,
+  clientAdvance: number | null | undefined,
+  payments: { amount: number }[],
+): {
+  total_budget: number | null;
+  client_advance: number;
+  total_paid: number;
+  pending_balance: number;
+  payments_count: number;
+} {
+  const budget =
+    totalBudget != null && totalBudget > 0 ? Number(totalBudget) : null;
+  const advance = Number(clientAdvance ?? 0);
+  const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+  const pendingBalance =
+    budget != null
+      ? Math.max(budget - totalPaid, 0)
+      : Math.max(advance - totalPaid, 0);
+
+  return {
+    total_budget: budget,
+    client_advance: advance,
+    total_paid: totalPaid,
+    pending_balance: pendingBalance,
+    payments_count: payments.length,
+  };
+}

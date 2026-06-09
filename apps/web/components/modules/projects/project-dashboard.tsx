@@ -1,5 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import type { Project, ProjectSummary } from "@constructa/types";
+import type { PaymentBalance, Project, ProjectSummary } from "@constructa/types";
 import { formatGtq, projectStatusLabel } from "@constructa/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +14,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  PaymentsSection,
+} from "@/components/modules/payments/payments-section";
+import type { PaymentWithReceiptUrl } from "@/components/modules/payments/payment-list";
 
 interface Stage {
   id: string;
@@ -26,16 +33,32 @@ interface ProjectWithStages extends Project {
 interface ProjectDashboardProps {
   project: ProjectWithStages;
   summary: ProjectSummary;
+  balance: PaymentBalance;
+  payments: PaymentWithReceiptUrl[];
+  clientPortalUrl: string | null;
 }
 
-export function ProjectDashboard({ project, summary }: ProjectDashboardProps) {
+export function ProjectDashboard({
+  project,
+  summary,
+  balance,
+  payments,
+  clientPortalUrl,
+}: ProjectDashboardProps) {
+  const [copied, setCopied] = useState(false);
+
   const location = [project.address, project.municipality, project.department]
     .filter(Boolean)
     .join(" · ");
 
   const budget = Number(project.total_budget ?? 0);
-  const advance = Number(project.client_advance ?? 0);
-  const pending = budget - advance;
+
+  async function copyPortalLink() {
+    if (!clientPortalUrl) return;
+    await navigator.clipboard.writeText(clientPortalUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <div className="space-y-6">
@@ -73,17 +96,17 @@ export function ProjectDashboard({ project, summary }: ProjectDashboardProps) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Anticipo recibido</CardDescription>
-            <CardTitle className="text-2xl">{formatGtq(advance)}</CardTitle>
+            <CardDescription>Anticipo acordado</CardDescription>
+            <CardTitle className="text-2xl">
+              {formatGtq(balance.client_advance)}
+            </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Pendiente por cobrar</CardDescription>
+            <CardDescription>Saldo pendiente de la obra</CardDescription>
             <CardTitle className="text-2xl">
-              {project.total_budget != null
-                ? formatGtq(Math.max(pending, 0))
-                : "—"}
+              {formatGtq(balance.pending_balance)}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -135,6 +158,39 @@ export function ProjectDashboard({ project, summary }: ProjectDashboardProps) {
           )}
         </CardContent>
       </Card>
+
+      {clientPortalUrl && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Portal del cliente</CardTitle>
+            <CardDescription>
+              Comparte este enlace con tu cliente para que vea el avance y los
+              pagos
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <code className="flex-1 truncate rounded-md bg-muted px-3 py-2 text-xs">
+              {clientPortalUrl}
+            </code>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={copyPortalLink}>
+                {copied ? "Copiado" : "Copiar enlace"}
+              </Button>
+              <Button asChild variant="secondary">
+                <Link href={clientPortalUrl} target="_blank">
+                  Abrir portal
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <PaymentsSection
+        projectId={project.id}
+        balance={balance}
+        payments={payments}
+      />
 
       <div className="flex gap-2 text-sm text-muted-foreground">
         {project.start_date && (
