@@ -1,0 +1,30 @@
+# Módulo 07 — Reportes Automáticos
+> La IA redacta. El PDF está listo.
+
+## Estado actual
+```
+🔲 NO INICIADO | Sprint 06 | Plan: Profesional+ | Depende: datos en BD
+```
+
+## Funcionalidades
+- Reporte semanal automático (avance, materiales, personal, gastos)
+- Narrativa en español guatemalteco vía Claude
+- Exportación PDF (React-PDF)
+- Historial de reportes generados
+
+## API Routes
+```
+POST   /api/reports/generate
+GET    /api/projects/[id]/reports
+GET    /api/reports/[id]/pdf
+```
+
+## Tablas
+`reports`
+
+## Ver también
+`AI_SYSTEM.md` → caso de uso #3
+
+## Criterio de finalización
+- [ ] Reporte generado en < 30 segundos
+- [ ] PDF descargable y compartible con cliente

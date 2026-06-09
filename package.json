@@ -1,0 +1,27 @@
+{
+  "name": "constructa",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @constructa/web dev",
+    "dev:3001": "pnpm --filter @constructa/web dev:3001",
+    "build": "pnpm --filter @constructa/web build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "db:login": "supabase login",
+    "db:link": "supabase link",
+    "db:push": "supabase db push",
+    "db:pull": "supabase db pull",
+    "db:status": "supabase migration list",
+    "db:local:start": "supabase start",
+    "db:local:stop": "supabase stop",
+    "db:local:reset": "supabase db reset",
+    "db:local:status": "supabase status"
+  },
+  "devDependencies": {
+    "supabase": "^2.23.4"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}
