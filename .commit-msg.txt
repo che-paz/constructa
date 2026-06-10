@@ -1,6 +1,0 @@
-chore(web): pulido local con CRUD de gastos y docs sincronizados
-
-Permite registrar gastos por proyecto, enlaza finanzas con obras, corrige lint
-y actualiza documentación antes de Sprint 06 y la versión móvil.
-
-Co-authored-by: Cursor <cursoragent@cursor.com>
