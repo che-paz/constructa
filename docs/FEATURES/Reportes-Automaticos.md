@@ -3,14 +3,14 @@
 
 ## Estado actual
 ```
-🔲 NO INICIADO | Sprint 06 | Plan: Profesional+ | Depende: datos en BD
+✅ COMPLETADO | Sprint 06 | Plan: Profesional+
 ```
 
 ## Funcionalidades
 - Reporte semanal automático (avance, materiales, personal, gastos)
 - Narrativa en español guatemalteco vía Claude
 - Exportación PDF (React-PDF)
-- Historial de reportes generados
+- Historial de reportes en dashboard de proyecto
 
 ## API Routes
 ```
@@ -20,11 +20,11 @@ GET    /api/reports/[id]/pdf
 ```
 
 ## Tablas
-`reports`
+`reports`, `ai_usage_log`
 
 ## Ver también
 `AI_SYSTEM.md` → caso de uso #3
 
 ## Criterio de finalización
-- [ ] Reporte generado en < 30 segundos
-- [ ] PDF descargable y compartible con cliente
+- [x] Reporte generado en < 30 segundos
+- [x] PDF descargable y compartible con cliente

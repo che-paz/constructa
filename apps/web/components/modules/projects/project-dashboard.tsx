@@ -28,6 +28,7 @@ import {
 } from "@/components/modules/payments/payments-section";
 import type { PaymentWithReceiptUrl } from "@/components/modules/payments/payment-list";
 import { StagesSection } from "@/components/modules/schedule/stages-section";
+import { ReportsSection } from "@/components/modules/reports/reports-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+interface ReportSummary {
+  id: string;
+  report_type: string;
+  period_start: string | null;
+  period_end: string | null;
+  ai_narrative: string | null;
+  created_at: string;
+}
 
 interface ProjectDashboardProps {
   project: Project;
@@ -53,6 +63,7 @@ interface ProjectDashboardProps {
   payroll: PayrollSummary;
   financialSummary: ProjectFinancialSummary;
   expenses: Expense[];
+  reports: ReportSummary[];
   clientPortalUrl: string | null;
 }
 
@@ -71,6 +82,7 @@ export function ProjectDashboard({
   payroll,
   financialSummary,
   expenses,
+  reports,
   clientPortalUrl,
 }: ProjectDashboardProps) {
   const [copied, setCopied] = useState(false);
@@ -207,6 +219,8 @@ export function ProjectDashboard({
       />
 
       <ExpensesSection projectId={project.id} expenses={expenses} />
+
+      <ReportsSection projectId={project.id} initialReports={reports} />
 
       <div className="flex gap-2 text-sm text-muted-foreground">
         {project.start_date && (

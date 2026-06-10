@@ -49,6 +49,10 @@ rlsSuite("RLS org isolation", () => {
   let attendanceBId = "";
   let expenseAId = "";
   let expenseBId = "";
+  let conversationAId = "";
+  let conversationBId = "";
+  let reportAId = "";
+  let reportBId = "";
   let tokenA = "";
 
   beforeAll(async () => {
@@ -350,12 +354,75 @@ rlsSuite("RLS org isolation", () => {
       .single();
     if (expenseBError || !expenseB) throw expenseBError;
     expenseBId = expenseB.id;
+
+    const { data: conversationA, error: conversationAError } = await admin
+      .from("ai_conversations")
+      .insert({
+        organization_id: orgAId,
+        user_id: userAId,
+        project_id: projectAId,
+        messages: [{ role: "user", content: "Test A" }],
+      })
+      .select("id")
+      .single();
+    if (conversationAError || !conversationA) throw conversationAError;
+    conversationAId = conversationA.id;
+
+    const { data: conversationB, error: conversationBError } = await admin
+      .from("ai_conversations")
+      .insert({
+        organization_id: orgBId,
+        user_id: userBId,
+        project_id: projectBId,
+        messages: [{ role: "user", content: "Test B" }],
+      })
+      .select("id")
+      .single();
+    if (conversationBError || !conversationB) throw conversationBError;
+    conversationBId = conversationB.id;
+
+    const { data: reportA, error: reportAError } = await admin
+      .from("reports")
+      .insert({
+        organization_id: orgAId,
+        project_id: projectAId,
+        report_type: "weekly",
+        period_start: "2025-06-02",
+        period_end: "2025-06-08",
+        ai_narrative: "Reporte A",
+        created_by: userAId,
+      })
+      .select("id")
+      .single();
+    if (reportAError || !reportA) throw reportAError;
+    reportAId = reportA.id;
+
+    const { data: reportB, error: reportBError } = await admin
+      .from("reports")
+      .insert({
+        organization_id: orgBId,
+        project_id: projectBId,
+        report_type: "weekly",
+        period_start: "2025-06-02",
+        period_end: "2025-06-08",
+        ai_narrative: "Reporte B",
+        created_by: userBId,
+      })
+      .select("id")
+      .single();
+    if (reportBError || !reportB) throw reportBError;
+    reportBId = reportB.id;
   });
 
   afterAll(async () => {
     if (!hasEnv || !admin) return;
 
     await admin.from("expenses").delete().in("id", [expenseAId, expenseBId]);
+    await admin.from("reports").delete().in("id", [reportAId, reportBId]);
+    await admin
+      .from("ai_conversations")
+      .delete()
+      .in("id", [conversationAId, conversationBId]);
     await admin
       .from("worker_attendance")
       .delete()
@@ -642,6 +709,58 @@ rlsSuite("RLS org isolation", () => {
 
     expect(data).toBeNull();
     expect(error).not.toBeNull();
+  });
+
+  it("user A sees only org A ai conversations", async () => {
+    const token = await signIn(`rls-a-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client
+      .from("ai_conversations")
+      .select("id, organization_id");
+
+    expect(error).toBeNull();
+    expect(data?.every((c) => c.organization_id === orgAId)).toBe(true);
+    expect(data?.some((c) => c.id === conversationBId)).toBe(false);
+  });
+
+  it("user B cannot read org A ai conversation by id", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data } = await client
+      .from("ai_conversations")
+      .select("id")
+      .eq("id", conversationAId)
+      .maybeSingle();
+
+    expect(data).toBeNull();
+  });
+
+  it("user A sees only org A reports", async () => {
+    const token = await signIn(`rls-a-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client
+      .from("reports")
+      .select("id, organization_id");
+
+    expect(error).toBeNull();
+    expect(data?.every((r) => r.organization_id === orgAId)).toBe(true);
+    expect(data?.some((r) => r.id === reportBId)).toBe(false);
+  });
+
+  it("user B cannot read org A report by id", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data } = await client
+      .from("reports")
+      .select("id")
+      .eq("id", reportAId)
+      .maybeSingle();
+
+    expect(data).toBeNull();
   });
 });
 

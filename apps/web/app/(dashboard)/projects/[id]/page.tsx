@@ -56,6 +56,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
     { data: expenseRows },
     { data: allAttendance },
     { data: allMaterials },
+    { data: reports },
   ] = await Promise.all([
     supabase
       .from("stages")
@@ -117,6 +118,14 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       .eq("project_id", params.id)
       .eq("organization_id", auth.organization.id)
       .is("deleted_at", null),
+    supabase
+      .from("reports")
+      .select(
+        "id, report_type, period_start, period_end, ai_narrative, created_at",
+      )
+      .eq("project_id", params.id)
+      .eq("organization_id", auth.organization.id)
+      .order("created_at", { ascending: false }),
   ]);
 
   const stages = ((stagesRaw ?? []) as Stage[]).map((s) =>
@@ -224,6 +233,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       payroll={payroll}
       financialSummary={financialSummary}
       expenses={(expenseRows ?? []) as Expense[]}
+      reports={reports ?? []}
       clientPortalUrl={clientPortalUrl}
     />
   );

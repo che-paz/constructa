@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, LayoutDashboard, Wallet } from "lucide-react";
+import { Bot, Building2, LayoutDashboard, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/projects", label: "Proyectos", icon: Building2 },
   { href: "/finance", label: "Finanzas", icon: Wallet },
+  { href: "/assistant", label: "Asistente IA", icon: Bot },
 ] as const;
 
 interface SidebarProps {

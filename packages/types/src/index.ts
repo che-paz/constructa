@@ -388,3 +388,70 @@ export interface CashflowSummary {
   total_outflows: number;
   net: number;
 }
+
+export interface AIChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface AIConversation {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  project_id: string | null;
+  messages: AIChatMessage[];
+  tokens_used: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ReportType = "weekly" | "monthly" | "milestone";
+
+export interface ReportDataSnapshot {
+  project: {
+    id: string;
+    name: string;
+    client_name: string | null;
+    status: ProjectStatus;
+    progress_pct: number;
+  };
+  period: {
+    start: string;
+    end: string;
+  };
+  financial: ProjectFinancialSummary;
+  schedule: {
+    total_stages: number;
+    completed_stages: number;
+    delayed_stages: number;
+    stages: Array<{
+      name: string;
+      status: StageStatus;
+      progress_pct: number;
+      delay_days: number;
+    }>;
+  };
+  materials: MaterialSummary;
+  payroll: {
+    week_start: string;
+    total_amount: number;
+    workers_count: number;
+    total_hours: number;
+  };
+  payments_in_period: number;
+  expenses_in_period: number;
+}
+
+export interface Report {
+  id: string;
+  organization_id: string;
+  project_id: string;
+  report_type: ReportType;
+  period_start: string | null;
+  period_end: string | null;
+  ai_narrative: string | null;
+  pdf_url: string | null;
+  data_snapshot: ReportDataSnapshot | null;
+  created_by: string;
+  created_at: string;
+}

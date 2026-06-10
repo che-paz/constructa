@@ -3,18 +3,19 @@
 
 ## Estado actual
 ```
-🔲 NO INICIADO | Sprint 06 | Plan: Profesional+
+✅ COMPLETADO | Sprint 06 | Plan: Profesional+
 ```
 
 ## Funcionalidades
-- Chat interface con streaming
+- Chat interface con streaming en `/assistant`
 - Consultas: gastos, atrasos, materiales, pagos
 - Solo lectura (nunca escribe a BD directamente)
 - Historial por sesión en `ai_conversations`
+- Rate limit 100 req/hora + quota por plan
 
 ## API Routes
 ```
-POST   /api/ai/chat          (streaming)
+POST   /api/ai/chat          (streaming SSE)
 GET    /api/ai/conversations
 ```
 
@@ -22,6 +23,6 @@ GET    /api/ai/conversations
 `AI_SYSTEM.md` → caso de uso #1, system prompt, quotas
 
 ## Criterio de finalización
-- [ ] Responde "¿Cuánto gasté en hierro este mes?" correctamente
-- [ ] Rate limit 100 req/hora por org
-- [ ] Respuesta en español guatemalteco
+- [x] Responde "¿Cuánto gasté en hierro este mes?" correctamente
+- [x] Rate limit 100 req/hora por org
+- [x] Respuesta en español guatemalteco

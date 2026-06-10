@@ -401,6 +401,20 @@ CREATE TABLE ai_conversations (
 );
 ```
 
+### `ai_usage_log`
+```sql
+CREATE TABLE ai_usage_log (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id         UUID REFERENCES auth.users(id),
+  operation       TEXT NOT NULL CHECK (operation IN ('assistant', 'report')),
+  tokens_input    INT DEFAULT 0,
+  tokens_output   INT DEFAULT 0,
+  latency_ms      INT,
+  created_at      TIMESTAMPTZ DEFAULT now()
+);
+```
+
 ---
 
 ## Índices importantes

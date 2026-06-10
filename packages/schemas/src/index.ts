@@ -228,3 +228,27 @@ export const CashflowQuerySchema = z.object({
 
 export type CashflowQueryInput = z.infer<typeof CashflowQuerySchema>;
 export type CreateExpenseInput = z.infer<typeof CreateExpenseSchema>;
+
+export const ChatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().min(1).max(8000),
+});
+
+export const AIChatRequestSchema = z.object({
+  message: z.string().min(1, "Mensaje requerido").max(4000),
+  conversation_id: z.string().uuid().optional().nullable(),
+  project_id: z.string().uuid().optional().nullable(),
+});
+
+export const ReportTypeSchema = z.enum(["weekly", "monthly", "milestone"]);
+
+export const GenerateReportSchema = z.object({
+  project_id: z.string().uuid(),
+  report_type: ReportTypeSchema.default("weekly"),
+  period_start: z.string().date().optional(),
+  period_end: z.string().date().optional(),
+});
+
+export type ChatMessageInput = z.infer<typeof ChatMessageSchema>;
+export type AIChatRequestInput = z.infer<typeof AIChatRequestSchema>;
+export type GenerateReportInput = z.infer<typeof GenerateReportSchema>;

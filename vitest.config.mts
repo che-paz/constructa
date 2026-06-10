@@ -13,6 +13,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      "@": path.resolve(rootDir, "apps/web"),
       "@constructa/utils": path.resolve(rootDir, "packages/utils/src/index.ts"),
       "@constructa/types": path.resolve(rootDir, "packages/types/src/index.ts"),
       "@constructa/schemas": path.resolve(

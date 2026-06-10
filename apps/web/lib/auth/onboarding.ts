@@ -28,12 +28,26 @@ export async function createOrganizationForUser(
     slug = `${baseSlug}-${attempt}`;
   }
 
+  const plan =
+    process.env.CONSTRUCTA_DEFAULT_PLAN === "profesional" ||
+    process.env.CONSTRUCTA_DEFAULT_PLAN === "empresa"
+      ? process.env.CONSTRUCTA_DEFAULT_PLAN
+      : "basico";
+  const limits =
+    plan === "profesional"
+      ? { max_projects: 10, max_users: 20 }
+      : plan === "empresa"
+        ? { max_projects: 999, max_users: 999 }
+        : {};
+
   const { data: organization, error: orgError } = await supabase
     .from("organizations")
     .insert({
       name: input.organizationName,
       slug,
       email: input.email ?? null,
+      plan,
+      ...limits,
     })
     .select("id")
     .single();
