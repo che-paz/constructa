@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type {
+  Expense,
   MaterialAlert,
   MaterialCatalog,
   MaterialSummary,
@@ -16,6 +17,7 @@ import type {
   Worker,
   WorkerAttendance,
 } from "@constructa/types";
+import { ExpensesSection } from "@/components/modules/expenses/expenses-section";
 import { ProjectFinancialDetail } from "@/components/modules/finance/project-financial-detail";
 import { formatGtq, projectStatusLabel } from "@constructa/utils";
 import { MaterialsSection } from "@/components/modules/materials/materials-section";
@@ -50,6 +52,7 @@ interface ProjectDashboardProps {
   attendance: WorkerAttendance[];
   payroll: PayrollSummary;
   financialSummary: ProjectFinancialSummary;
+  expenses: Expense[];
   clientPortalUrl: string | null;
 }
 
@@ -67,6 +70,7 @@ export function ProjectDashboard({
   attendance,
   payroll,
   financialSummary,
+  expenses,
   clientPortalUrl,
 }: ProjectDashboardProps) {
   const [copied, setCopied] = useState(false);
@@ -201,6 +205,8 @@ export function ProjectDashboard({
         balance={balance}
         payments={payments}
       />
+
+      <ExpensesSection projectId={project.id} expenses={expenses} />
 
       <div className="flex gap-2 text-sm text-muted-foreground">
         {project.start_date && (

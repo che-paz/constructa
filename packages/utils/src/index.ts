@@ -40,6 +40,17 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   otro: "Otro",
 };
 
+const EXPENSE_CATEGORY_LABELS: Record<string, string> = {
+  materiales: "Materiales",
+  mano_obra: "Mano de obra",
+  transporte: "Transporte",
+  otros: "Otros",
+};
+
+export function expenseCategoryLabel(category: string): string {
+  return EXPENSE_CATEGORY_LABELS[category] ?? category;
+}
+
 export function paymentMethodLabel(method: string | null): string {
   if (!method) return "—";
   return PAYMENT_METHOD_LABELS[method] ?? method;

@@ -19,7 +19,7 @@ es un inventario que sabe cuánto DEBERÍA haberse usado y alerta cuando no cuad
 ## Estado actual
 
 ```
-🔲 NO INICIADO
+🟡 MVP BASE | Sprint 03 ✅
 Fase target: 2 (Sprint 3)
 Dependencias: Módulo 01 (Proyectos) debe estar completo
 ```

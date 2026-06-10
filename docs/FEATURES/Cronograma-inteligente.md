@@ -6,7 +6,7 @@ Atrasos no detectados hasta que ya es crisis.
 
 ## Estado actual
 ```
-🔲 NO INICIADO | Sprint 03 | Depende: Módulo 01
+🟡 MVP BASE | Sprint 03 ✅ | Depende: Módulo 01
 ```
 
 ## Funcionalidades MVP

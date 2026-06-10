@@ -98,7 +98,7 @@ Tener un sistema donde un constructor puede crear su cuenta, agregar proyectos, 
 ---
 
 ## FASE 2 — Core del MVP
-**Estado: 🔲 NO INICIADO**  
+**Estado: ✅ COMPLETADO (Sprints 3–5)**  
 **Duración:** 5 semanas (Sprints 3–5)  
 **Objetivo:** El sistema que justifica que un constructor pague Q399/mes.
 

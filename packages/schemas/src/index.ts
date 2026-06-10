@@ -202,6 +202,22 @@ export type CreateWorkerInput = z.infer<typeof CreateWorkerSchema>;
 export type UpdateWorkerInput = z.infer<typeof UpdateWorkerSchema>;
 export type CreateAttendanceInput = z.infer<typeof CreateAttendanceSchema>;
 
+export const ExpenseCategorySchema = z.enum([
+  "materiales",
+  "mano_obra",
+  "transporte",
+  "otros",
+]);
+
+export const CreateExpenseSchema = z.object({
+  category: ExpenseCategorySchema,
+  description: z.string().min(1, "Descripción requerida").max(500),
+  amount: z.number().positive("El monto debe ser mayor a cero"),
+  expense_date: z.string().date("Fecha inválida"),
+  stage_id: z.string().uuid().optional().nullable(),
+  invoice_number: z.string().max(100).optional().nullable(),
+});
+
 export const CashflowPeriodSchema = z.enum(["week", "month"]);
 
 export const CashflowQuerySchema = z.object({
@@ -211,3 +227,4 @@ export const CashflowQuerySchema = z.object({
 });
 
 export type CashflowQueryInput = z.infer<typeof CashflowQuerySchema>;
+export type CreateExpenseInput = z.infer<typeof CreateExpenseSchema>;

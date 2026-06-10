@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type {
+  Expense,
   MaterialAlert,
   MaterialCatalog,
   MaterialSummary,
@@ -52,7 +53,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
     { data: budgets },
     { data: workers },
     { data: attendance },
-    { data: expenses },
+    { data: expenseRows },
     { data: allAttendance },
     { data: allMaterials },
   ] = await Promise.all([
@@ -100,10 +101,11 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       .order("work_date", { ascending: false }),
     supabase
       .from("expenses")
-      .select("project_id, amount, expense_date")
+      .select("*")
       .eq("project_id", params.id)
       .eq("organization_id", auth.organization.id)
-      .is("deleted_at", null),
+      .is("deleted_at", null)
+      .order("expense_date", { ascending: false }),
     supabase
       .from("worker_attendance")
       .select("project_id, amount_paid, work_date")
@@ -172,7 +174,11 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       amount: p.amount,
       payment_date: p.payment_date,
     })),
-    expenses ?? [],
+    (expenseRows ?? []).map((e) => ({
+      project_id: e.project_id,
+      amount: e.amount,
+      expense_date: e.expense_date,
+    })),
     allMaterials ?? [],
     allAttendance ?? [],
     (stagesRaw ?? []).map((s) => ({
@@ -217,6 +223,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       attendance={(attendance ?? []) as WorkerAttendance[]}
       payroll={payroll}
       financialSummary={financialSummary}
+      expenses={(expenseRows ?? []) as Expense[]}
       clientPortalUrl={clientPortalUrl}
     />
   );

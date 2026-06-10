@@ -83,6 +83,30 @@ export interface Payment {
   deleted_at: string | null;
 }
 
+export type ExpenseCategory =
+  | "materiales"
+  | "mano_obra"
+  | "transporte"
+  | "otros";
+
+export interface Expense {
+  id: string;
+  organization_id: string;
+  project_id: string;
+  stage_id: string | null;
+  category: ExpenseCategory;
+  description: string;
+  amount: number;
+  supplier_id: string | null;
+  invoice_number: string | null;
+  invoice_url: string | null;
+  expense_date: string;
+  reported_via: string;
+  created_by: string;
+  created_at: string;
+  deleted_at: string | null;
+}
+
 export interface PaymentBalance {
   total_budget: number | null;
   client_advance: number;

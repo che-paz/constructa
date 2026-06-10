@@ -92,10 +92,10 @@ Plataforma SaaS de gestión integral para constructores guatemaltecos. Sustituye
 
 > Ver `CURRENT_STATE.md` para estado detallado.
 
-- Fase: **Pre-desarrollo** — Propuesta comercial definida
-- Código escrito: **0%**
-- Documentación: **En construcción**
-- Próximo paso: Validación con constructores reales + arquitectura técnica
+- Fase: **Core MVP web** — Sprints 01–05 completados
+- Código escrito: **~75%** del MVP web (falta IA + reportes)
+- Documentación: **Actualizada por sprint**
+- Próximo paso: Pulido local → Sprint 06 (IA + Reportes) → Beta → Móvil
 
 ---
 

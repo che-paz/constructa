@@ -1,6 +1,8 @@
+import Link from "next/link";
 import type { ProjectFinancialSummary } from "@constructa/types";
 import { formatGtq } from "@constructa/utils";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -26,9 +28,14 @@ export function ProjectFinancialDetail({
               Materiales + planilla + gastos registrados vs presupuesto
             </CardDescription>
           </div>
-          {summary.alert && (
-            <Badge variant="destructive">Alerta presupuesto</Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {summary.alert && (
+              <Badge variant="destructive">Alerta presupuesto</Badge>
+            )}
+            <Button asChild variant="outline" size="sm">
+              <Link href="/finance">Ver en Finanzas</Link>
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

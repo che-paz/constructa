@@ -1,5 +1,5 @@
 import type { AttendanceType } from "@constructa/types";
-import { calculateAttendanceAmount, calculateHoursWorked } from "@constructa/utils";
+import { calculateHoursWorked } from "@constructa/utils";
 import { enrichAttendanceAmount } from "./payroll";
 
 interface AttendanceInput {

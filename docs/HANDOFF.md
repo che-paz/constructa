@@ -6,9 +6,9 @@
 ## Resumen ejecutivo (30 segundos)
 
 **CONSTRUCTA** es SaaS de gestión de construcción para constructores guatemaltecos.  
-Reemplaza Excel + WhatsApp con 14 módulos + IA en español.  
+Reemplaza Excel + WhatsApp con módulos integrados + IA en español.  
 Precios: Q399 / Q799 / Q1,499/mes.  
-**Estado:** Fase 0 completa · Supabase Cloud operativo · Sprint 01 pendiente.
+**Estado:** Core MVP web completo (Sprints 01–05) · Pulido local en curso · Móvil post-MVP.
 
 ---
 
@@ -24,68 +24,41 @@ Stack:
   frontend: Next.js 14 + TypeScript + Tailwind + shadcn/ui
   backend: Next.js API Routes + Zod
   database: Supabase Cloud (PostgreSQL + Auth + Storage + RLS)
-  mobile: React Native + Expo (futuro)
-  ai: Anthropic Claude (claude-sonnet-4-20250514)
+  mobile: React Native + Expo (diferido — después de pulir web local)
+  ai: Anthropic Claude (claude-sonnet-4-20250514) — Sprint 06
   hosting: Vercel + Supabase Cloud
 
 Multitenancy: RLS con organization_id
 Repo: Monorepo pnpm — apps/web + packages/
-Supabase: project-ref qwijxxdsckztgnxnpqwb · 9 migraciones aplicadas
 Dev: pnpm dev:3001 (CONSTRUCTA) · otro proyecto en :3000
+Tests: pnpm test (32 tests RLS + unit)
 
-MVP demo (60 días): Proyectos, Materiales, Pagos, Portal Cliente
-MVP plan Básico (completo): + Cronograma, Personal (módulos 1–6)
+Módulos web MVP listos: Proyectos, Pagos, Portal, Materiales, Cronograma,
+Personal, Centro Financiero (+ CRUD gastos)
 
-Fase actual: 1 → Sprint 01 (Auth + Proyectos + Layout)
+Diferido: WhatsApp (12), Captura por voz (13), App móvil
+
+Fase actual: Pulido local web → luego Sprint 06 (IA + Reportes)
 ```
 
 ---
 
-## Contexto de negocio (no perder)
+## Orden de trabajo acordado
 
-- Constructores pragmáticos: adoptan si ahorran trabajo real desde día 1
-- WhatsApp = canal de adopción para supervisores de campo
-- Q399/mes es barato si evita Q5,000+ en materiales perdidos
-- Portal del cliente = diferenciador local
-- Módulo WOW: Control de Materiales
-
----
-
-## Lo completado en sesión anterior
-
-- [x] Monorepo pnpm (`apps/web`, `packages/`)
-- [x] Next.js 14 + Tailwind + shadcn/ui + Supabase client
-- [x] Supabase Cloud vinculado y migraciones aplicadas
-- [x] `.env.local` configurado en `apps/web/`
-- [x] `pnpm dev:3001` para desarrollo
+1. **Ahora:** Afinar web local (gastos, UX, docs, lint, tests verdes)
+2. **Después:** Sprint 06 — Asistente IA + Reportes automáticos
+3. **Más adelante:** App móvil React Native (sprint separado)
+4. **Post-beta:** WhatsApp y voz
 
 ---
 
-## Instrucciones para el próximo chat
+## Instrucciones para el próximo chat (Sprint 06)
 
-```
-INICIO DE SESIÓN — CONSTRUCTA
+Ver prompt completo en historial o `docs/CURRENT_STATE.md`.  
+Leer: `AI_SYSTEM.md`, `FEATURES/Asistente-IA-constructor.md`, `FEATURES/Reportes-Automaticos.md`.
 
-Lee en orden antes de responder:
-1. docs/PROJECT_OVERVIEW.md
-2. docs/CURRENT_STATE.md
-3. docs/ROADMAP.md (Sprint 1)
-4. docs/FEATURES/Gestion-de-proyectos.md
-5. docs/ENGINEERING_RULES.md
-
-Stack: Next.js 14 + TypeScript + Supabase Cloud + Tailwind + shadcn/ui
-Estado: Fase 0 completa. Supabase Cloud operativo (9 migraciones). Sprint 01.
-
-Tarea de hoy — Sprint 01:
-1. Auth: páginas login/signup con Supabase Auth
-2. Onboarding: signup → crear organization + user_organizations (rol constructor)
-3. Layout dashboard: sidebar, navbar, protección de rutas (middleware)
-4. CRUD Proyectos (Módulo 01): listar, crear, editar, ver detalle
-
-Dev: pnpm dev:3001 (localhost:3001)
-Reglas: docs/ENGINEERING_RULES.md
-```
+**Fuera de alcance:** Módulos 12 (WhatsApp) y 13 (Voz).
 
 ---
 
-*Actualizado: 2026-06-09 · Fin sesión Fase 0 / inicio Sprint 01*
+*Actualizado: 2026-06-10 · Post Sprint 05 / pulido local*

@@ -23,8 +23,19 @@
   - Exportación CSV + gráfico Recharts
   - Tests RLS expenses (+3) + unit agregación financiera (+5)
 - **Archivos clave:** `app/api/finance/`, `lib/finance/`, `components/modules/finance/`
-- **Próxima tarea inmediata:** Sprint 06 — Asistente IA + Reportes automáticos
-- **Diferido explícito:** Módulos 12 (WhatsApp) y 13 (Captura por voz) — no entran en Sprint 06 ni 07 por ahora
+- **Próxima tarea inmediata:** Pulido web local → Sprint 06 (Asistente IA + Reportes)
+- **Diferido explícito:** App móvil, WhatsApp (12) y Captura por voz (13)
+
+### Pulido local (en curso)
+
+| Ítem | Estado | Notas |
+|---|---|---|
+| CRUD gastos en proyecto | ✅ DONE | API + UI expenses |
+| Home → /finance | ✅ DONE | Hub financiero como entrada |
+| Lint limpio | ✅ DONE | — |
+| Docs sincronizados | ✅ DONE | HANDOFF, OVERVIEW |
+| Sprint 06 IA + Reportes | 🔲 SIGUIENTE | Tras validar web local |
+| App móvil React Native | 🔲 POST-MVP | Después de web estable |
 
 ---
 
