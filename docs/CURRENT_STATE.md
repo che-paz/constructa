@@ -4,10 +4,10 @@
 
 ---
 
-## Estado global: FASE 3 COMPLETA — IA + REPORTES (Sprint 06 ✅)
+## Estado global: BETA EN PRODUCCIÓN — Vercel deploy ✅
 
 ```
-[████████████████████████] 95% — Core MVP web completo · Beta próxima (Sprint 08)
+[████████████████████████] 98% — MVP web en producción · Beta real con constructores
 ```
 
 ---
@@ -16,15 +16,14 @@
 
 - **Fecha:** 2026-06-10
 - **Qué se hizo:**
-  - Módulo 11 Asistente IA: chat streaming en `/assistant`, contexto del tenant, historial
-  - Módulo 07 Reportes: generación semanal con narrativa Claude, PDF React-PDF
-  - APIs: `/api/ai/chat`, `/api/ai/conversations`, `/api/reports/*`
-  - Migraciones: `ai_usage_log`, bucket `report-pdfs`
-  - Rate limit 100 req/hora + quotas por plan (basico=0, profesional=50/día, empresa=ilimitado)
-  - Tests: +6 unit IA + +4 RLS → **42 tests** total
-- **Archivos clave:** `lib/ai/`, `lib/reports/`, `components/modules/ai/`, `components/modules/reports/`
-- **Próxima tarea inmediata:** Beta cerrada (Sprint 08) — fotos, proveedores, riesgos
-- **Diferido explícito:** App móvil, WhatsApp (12) y Captura por voz (13)
+  - **Deploy Vercel (CLI):** https://constructa-nine.vercel.app — monorepo pnpm, root `apps/web`
+  - Pestañas en dashboard de proyecto (`project-tab-nav.tsx`) — commit `efdb065`
+  - Fix build Vercel: eliminado `(dashboard)/page.tsx` (conflicto con `/` landing)
+  - Env vars en Vercel: Supabase, Anthropic, `CONSTRUCTA_DEFAULT_PLAN=profesional`
+  - Docs: `docs/archive/deploy-vercel.md`
+- **Archivos clave:** `vercel.json`, `apps/web/next.config.mjs`, `docs/archive/deploy-vercel.md`
+- **Próxima tarea inmediata:** Conectar GitHub → auto-deploy · Supabase Auth URLs producción · checklist beta
+- **Pendiente manual:** Supabase → Site URL + Redirect URLs con dominio Vercel
 
 ---
 
@@ -102,9 +101,11 @@ cd /Users/ch3/Desktop/CONSTRUCTA
 pnpm dev:3001          # CONSTRUCTA en localhost:3001
 pnpm test              # 42 tests (RLS + unit)
 pnpm db:push           # aplicar migraciones ai_usage_log + report-pdfs
+npx vercel deploy --prod --yes   # deploy producción (desde raíz del monorepo)
 ```
 
-**Requerido para IA:** `ANTHROPIC_API_KEY` en `apps/web/.env.local`
+**Producción:** https://constructa-nine.vercel.app  
+**Requerido para IA:** `ANTHROPIC_API_KEY` en Vercel (server) y `.env.local` (local)
 
 ---
 

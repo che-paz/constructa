@@ -28,7 +28,7 @@ Sem 1     Sem 2-5       Sem 6-12         Sem 13-16        Sem 17-18     Sem 19-2
 | 0.2 | Validación con 10 constructores reales | ⏳ PENDING | — |
 | 0.3 | Setup repositorio GitHub (monorepo) | ✅ DONE | — |
 | 0.4 | Setup proyecto Supabase Cloud | ✅ DONE | 0.3 |
-| 0.5 | Setup proyecto Vercel | ⏳ PENDING | 0.3 |
+| 0.5 | Setup proyecto Vercel | ✅ DONE | 0.3 |
 | 0.6 | Diseño sistema en Figma (pantallas MVP) | ⏳ PENDING | 0.2 |
 | 0.7 | Setup CI/CD (GitHub Actions) | ⏳ PENDING | 0.3 |
 
