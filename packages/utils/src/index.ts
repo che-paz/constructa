@@ -215,6 +215,81 @@ export function getWeekDates(weekStart: string): string[] {
   return dates;
 }
 
+export interface FinancialBreakdownInput {
+  materials_cost: number;
+  payroll_cost: number;
+  registered_expenses: number;
+}
+
+export function calculateProjectSpent(breakdown: FinancialBreakdownInput): number {
+  return (
+    Number(breakdown.materials_cost) +
+    Number(breakdown.payroll_cost) +
+    Number(breakdown.registered_expenses)
+  );
+}
+
+export function calculateBudgetUsedPct(
+  totalSpent: number,
+  totalBudget: number | null | undefined,
+): number {
+  const budget = totalBudget != null ? Number(totalBudget) : 0;
+  if (budget <= 0) return 0;
+  return Math.round((totalSpent / budget) * 1000) / 10;
+}
+
+export function calculateRemainingBudget(
+  totalBudget: number | null | undefined,
+  totalSpent: number,
+): number | null {
+  const budget = totalBudget != null ? Number(totalBudget) : null;
+  if (budget == null || budget <= 0) return null;
+  return Math.max(budget - totalSpent, 0);
+}
+
+export interface BudgetAlertInput {
+  project_id: string;
+  project_name: string;
+  budget_used_pct: number;
+  progress_pct: number;
+}
+
+export function detectBudgetAlert(
+  input: BudgetAlertInput,
+): {
+  project_id: string;
+  project_name: string;
+  budget_used_pct: number;
+  progress_pct: number;
+  severity: "high";
+  message: string;
+} | null {
+  if (input.budget_used_pct > 80 && input.progress_pct < 70) {
+    return {
+      project_id: input.project_id,
+      project_name: input.project_name,
+      budget_used_pct: input.budget_used_pct,
+      progress_pct: input.progress_pct,
+      severity: "high",
+      message: `Gasto al ${input.budget_used_pct.toFixed(1)}% del presupuesto con solo ${input.progress_pct}% de avance`,
+    };
+  }
+  return null;
+}
+
+/** Primer día del mes para una fecha ISO. */
+export function getMonthStart(dateInput?: string): string {
+  const ref = dateInput ? new Date(`${dateInput}T12:00:00`) : new Date();
+  return `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+/** Último día del mes para una fecha ISO. */
+export function getMonthEnd(dateInput?: string): string {
+  const ref = dateInput ? new Date(`${dateInput}T12:00:00`) : new Date();
+  const last = new Date(ref.getFullYear(), ref.getMonth() + 1, 0);
+  return last.toISOString().slice(0, 10);
+}
+
 export function calculatePaymentBalance(
   totalBudget: number | null | undefined,
   clientAdvance: number | null | undefined,

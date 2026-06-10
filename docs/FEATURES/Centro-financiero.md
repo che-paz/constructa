@@ -6,7 +6,7 @@ Presupuestos fuera de control sin visión consolidada.
 
 ## Estado actual
 ```
-🔲 NO INICIADO | Sprint 05 | Depende: Módulos 01, 03, 04, 05
+🟡 MVP BASE | Sprint 05 ✅ | Depende: Módulos 01, 03, 04, 05
 ```
 
 ## Funcionalidades MVP
@@ -27,5 +27,5 @@ GET   /api/projects/[id]/financial-summary
 `project_financial_summary` (ver DATABASE_SCHEMA.md)
 
 ## Criterio de finalización
-- [ ] Constructor ve todos los proyectos en un panel
-- [ ] Alertas cuando proyecto > 80% presupuesto con < 70% avance
+- [x] Constructor ve todos los proyectos en un panel
+- [x] Alertas cuando proyecto > 80% presupuesto con < 70% avance

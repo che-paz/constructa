@@ -3,8 +3,9 @@
 
 ## Estado actual
 ```
-🔲 NO INICIADO | Sprint 07 | Plan: Profesional+ | Iniciar aprobación Meta en Fase 2
+⏸️ DIFERIDO | Post-beta | Plan: Profesional+ | Fuera de Sprint 06–07
 ```
+> Decisión 2026-06-10: pospuesto hasta validar beta y aprobación Meta WhatsApp Business API.
 
 ## Funcionalidades
 - Mensaje libre → inventario/ asistencia actualizados

@@ -3,8 +3,9 @@
 
 ## Estado actual
 ```
-🔲 NO INICIADO | Sprint 07 | Plan: Empresa
+⏸️ DIFERIDO | Post-MVP | Plan: Empresa | Requiere app móvil Expo
 ```
+> Decisión 2026-06-10: pospuesto junto con WhatsApp; depende de app móvil.
 
 ## Funcionalidades
 - Grabación en app móvil (Expo)

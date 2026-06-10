@@ -1,6 +1,9 @@
 # AI_SYSTEM.md
 > Diseño del sistema de Inteligencia Artificial de CONSTRUCTA.  
-> Leer antes de cualquier trabajo relacionado con IA, reportes automáticos o WhatsApp.
+> Leer antes de cualquier trabajo relacionado con IA o reportes automáticos.
+
+> **Alcance Sprint 06:** casos de uso #1 (Asistente) y #3 (Reportes).  
+> Casos #2 (WhatsApp) y voz están **diferidos** — ver `CURRENT_STATE.md`.
 
 ---
 

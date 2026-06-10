@@ -299,3 +299,68 @@ export interface PayrollSummary {
   unpaid_amount: number;
   workers_count: number;
 }
+
+export interface ProjectFinancialBreakdown {
+  materials_cost: number;
+  payroll_cost: number;
+  registered_expenses: number;
+}
+
+export interface FinanceAlert {
+  project_id: string;
+  project_name: string;
+  budget_used_pct: number;
+  progress_pct: number;
+  severity: "high";
+  message: string;
+}
+
+export interface ProjectFinancialSummary {
+  project_id: string;
+  project_name: string;
+  status: ProjectStatus;
+  total_budget: number | null;
+  total_received: number;
+  total_spent: number;
+  breakdown: ProjectFinancialBreakdown;
+  remaining_budget: number | null;
+  budget_used_pct: number;
+  progress_pct: number;
+  pending_receivable: number;
+  alert: FinanceAlert | null;
+}
+
+export interface FinanceDashboardTotals {
+  total_budget: number;
+  total_received: number;
+  total_spent: number;
+  total_pending_receivable: number;
+  total_remaining_budget: number;
+}
+
+export interface FinanceDashboard {
+  organization_id: string;
+  totals: FinanceDashboardTotals;
+  projects: ProjectFinancialSummary[];
+  alerts: FinanceAlert[];
+}
+
+export type CashflowPeriod = "week" | "month";
+
+export interface CashflowEntry {
+  date: string;
+  inflows: number;
+  outflows: number;
+  net: number;
+}
+
+export interface CashflowSummary {
+  period: CashflowPeriod;
+  period_start: string;
+  period_end: string;
+  project_id: string | null;
+  entries: CashflowEntry[];
+  total_inflows: number;
+  total_outflows: number;
+  net: number;
+}

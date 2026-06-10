@@ -4,10 +4,10 @@
 
 ---
 
-## Estado global: FASE 2 — CORE MVP (Sprint 04)
+## Estado global: FASE 3 — IA + REPORTES (Sprint 06)
 
 ```
-[██████████████████████░░] 80% — Sprint 04 completo · listo para Sprint 05
+[████████████████████░░░░] 83% — Core MVP completo · Fase 3 en curso (sin WhatsApp/voz)
 ```
 
 ---
@@ -16,13 +16,15 @@
 
 - **Fecha:** 2026-06-10
 - **Qué se hizo:**
-  - Módulo 04 Personal: CRUD trabajadores org, asistencia manual, cálculo horas/monto
-  - Planilla semanal en dashboard proyecto (tabla lun–dom, navegación por semana)
-  - Historial asistencia/pagos por trabajador (clic en nombre)
-  - APIs: workers, attendance, payroll
-  - Tests RLS: +5 workers/attendance (20 RLS total) + 4 unit tests payroll
-- **Archivos clave:** `app/api/workers/`, `app/api/attendance/`, `components/modules/workers/`, `lib/workers/`
-- **Próxima tarea inmediata:** Sprint 05 — Centro Financiero
+  - Módulo 10 Centro Financiero: dashboard multi-proyecto, flujo de caja, alertas
+  - Agregación gasto real = materiales + planilla + gastos registrados
+  - APIs finance/dashboard, finance/cashflow, projects/[id]/financial-summary
+  - UI `/finance` en sidebar + resumen financiero en dashboard de proyecto
+  - Exportación CSV + gráfico Recharts
+  - Tests RLS expenses (+3) + unit agregación financiera (+5)
+- **Archivos clave:** `app/api/finance/`, `lib/finance/`, `components/modules/finance/`
+- **Próxima tarea inmediata:** Sprint 06 — Asistente IA + Reportes automáticos
+- **Diferido explícito:** Módulos 12 (WhatsApp) y 13 (Captura por voz) — no entran en Sprint 06 ni 07 por ahora
 
 ---
 
@@ -43,15 +45,19 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-03.md`
 **Sprint 04 — Personal y Planilla**  
 Estado: ✅ COMPLETADO → ver `archive/sprint-04.md`
 
+**Sprint 05 — Centro Financiero**  
+Estado: ✅ COMPLETADO → ver `archive/sprint-05.md`
+
 | Tarea | Estado | Notas |
 |---|---|---|
-| CRUD trabajadores | ✅ DONE | Org-scoped, jornal GTQ |
-| Asistencia manual | ✅ DONE | Upsert por día/proyecto/trabajador |
-| Cálculo horas y monto | ✅ DONE | full/half/absent/overtime |
-| Planilla semanal | ✅ DONE | Tabla + selector semana |
-| Historial por trabajador | ✅ DONE | En dashboard proyecto |
-| Tests RLS personal | ✅ DONE | `pnpm test` — 24 tests |
-| PDF planilla | 🔲 POST-MVP | React-PDF vs Puppeteer pendiente |
+| Dashboard multi-proyecto | ✅ DONE | Métricas consolidadas GTQ |
+| Gasto real vs presupuesto | ✅ DONE | Materiales + planilla + expenses |
+| Cuentas por cobrar | ✅ DONE | Saldo pendiente por obra |
+| Flujo de caja | ✅ DONE | Semana/mes + Recharts |
+| Exportación CSV | ✅ DONE | Desde vista /finance |
+| Alertas presupuesto/avance | ✅ DONE | >80% gasto y <70% avance |
+| Tests RLS expenses | ✅ DONE | `pnpm test` — 32 tests |
+| App móvil React Native | 🔲 POST-MVP | Sprint separado |
 
 ## Módulos: estado de desarrollo
 
@@ -63,7 +69,21 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-04.md`
 | 04 Control de Personal | 🟡 MVP BASE | Sprint 04 | Asistencia + planilla semanal |
 | 05 Adelantos y Pagos | 🟡 MVP BASE | Sprint 02 | CRUD + comprobantes + saldo |
 | 06 Portal del Cliente | 🟡 MVP BASE | Sprint 02 | Token público, avance + pagos |
-| 07–14 | 🔲 NO INICIADO | Sprint 06+ | Post-MVP |
+| 10 Centro Financiero | 🟡 MVP BASE | Sprint 05 | Dashboard + flujo de caja + CSV |
+| 07 Reportes Automáticos | 🔲 PRÓXIMO | Sprint 06 | PDF + narrativa Claude |
+| 11 Asistente IA | 🔲 PRÓXIMO | Sprint 06 | Chat streaming, solo lectura |
+| 08 Fotografías | 🔲 NO INICIADO | Sprint 08 | Beta |
+| 09 Compras y Proveedores | 🔲 NO INICIADO | Sprint 08 | Beta |
+| 14 Detección de Riesgos | 🔲 NO INICIADO | Sprint 08 | Beta |
+| 12 WhatsApp Integrado | ⏸️ DIFERIDO | — | Post-MVP; aprobación Meta pendiente |
+| 13 Captura por Voz | ⏸️ DIFERIDO | — | Post-MVP; requiere app móvil |
+
+### Módulos diferidos (decisión 2026-06-10)
+
+| Módulo | Motivo | Revisar cuando |
+|---|---|---|
+| 12 WhatsApp | Costo/aprobación Meta + complejidad webhook | Beta con constructores reales |
+| 13 Captura por voz | Depende de app móvil Expo | Tras app móvil o demanda validada |
 
 ---
 
@@ -87,15 +107,18 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-04.md`
 | Presupuesto esperado materiales | Tabla `stage_material_budgets` | JSON en stages | Normalizado, queryable por etapa |
 | Asistencia duplicada | Upsert `(project_id, worker_id, work_date)` | Insert siempre | Permite corregir jornada del día |
 | Cálculo jornal | Multiplicador por tipo + horas extra | Solo manual | full=1×, half=0.5×, overtime=1.5× + extras |
+| Agregación financiera | Capa app (`lib/finance`) | Extender vista SQL | Incluye materiales + planilla además de expenses |
+| Alcance Fase 3 | Solo IA + Reportes (Sprint 06) | Incluir WhatsApp/voz en Sprint 07 | Priorizar diferenciación web sin bloqueos externos |
 
 ---
 
 ## Decisiones técnicas PENDIENTES
 
-- [ ] Estrategia de PDF: React-PDF vs Puppeteer
+- [ ] Estrategia de PDF: React-PDF vs Puppeteer ← **decidir en Sprint 06**
 - [ ] Reconocimiento facial para asistencia: opcional post-MVP
 - [ ] QR para asistencia en campo: MVP básico post-Sprint 04
-- [ ] Transcripción de voz: Whisper API vs Google Speech-to-Text
+- [ ] WhatsApp Business API: gestión Meta cuando se reactive módulo 12
+- [ ] Transcripción de voz: Whisper API vs Google Speech-to-Text (módulo 13 diferido)
 - [ ] Push notifications: Expo Notifications vs OneSignal
 - [ ] Pasarela de pago GT: Stripe vs solución local
 
@@ -106,7 +129,7 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-04.md`
 | Riesgo | Probabilidad | Impacto | Mitigación |
 |---|---|---|---|
 | WhatsApp API costos altos | Media | Alto | Evaluar en Fase 4 |
-| Adopción en campo (supervisores) | Alta | Alto | WhatsApp + voz como canales |
+| Adopción en campo (supervisores) | Alta | Alto | Web manual por ahora; WhatsApp/voz diferidos |
 | RLS mal configurado | Media | Crítico | Tests automáticos de aislamiento ✅ |
 | Scope creep en MVP | Alta | Alto | Plan Básico = 6 módulos máximo |
 

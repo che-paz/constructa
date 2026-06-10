@@ -47,6 +47,8 @@ rlsSuite("RLS org isolation", () => {
   let workerBId = "";
   let attendanceAId = "";
   let attendanceBId = "";
+  let expenseAId = "";
+  let expenseBId = "";
   let tokenA = "";
 
   beforeAll(async () => {
@@ -316,11 +318,44 @@ rlsSuite("RLS org isolation", () => {
       .single();
     if (attendanceBError || !attendanceB) throw attendanceBError;
     attendanceBId = attendanceB.id;
+
+    const { data: expenseA, error: expenseAError } = await admin
+      .from("expenses")
+      .insert({
+        organization_id: orgAId,
+        project_id: projectAId,
+        category: "transporte",
+        description: `Expense A ${suffix}`,
+        amount: 500,
+        expense_date: "2025-06-05",
+        created_by: userAId,
+      })
+      .select("id")
+      .single();
+    if (expenseAError || !expenseA) throw expenseAError;
+    expenseAId = expenseA.id;
+
+    const { data: expenseB, error: expenseBError } = await admin
+      .from("expenses")
+      .insert({
+        organization_id: orgBId,
+        project_id: projectBId,
+        category: "otros",
+        description: `Expense B ${suffix}`,
+        amount: 800,
+        expense_date: "2025-06-05",
+        created_by: userBId,
+      })
+      .select("id")
+      .single();
+    if (expenseBError || !expenseB) throw expenseBError;
+    expenseBId = expenseB.id;
   });
 
   afterAll(async () => {
     if (!hasEnv || !admin) return;
 
+    await admin.from("expenses").delete().in("id", [expenseAId, expenseBId]);
     await admin
       .from("worker_attendance")
       .delete()
@@ -547,6 +582,51 @@ rlsSuite("RLS org isolation", () => {
     expect(error).not.toBeNull();
   });
 
+  it("user A sees only org A expenses", async () => {
+    const token = await signIn(`rls-a-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client
+      .from("expenses")
+      .select("id, organization_id")
+      .is("deleted_at", null);
+
+    expect(error).toBeNull();
+    expect(data?.every((e) => e.organization_id === orgAId)).toBe(true);
+    expect(data?.some((e) => e.id === expenseBId)).toBe(false);
+  });
+
+  it("user B cannot read org A expense by id", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data } = await client
+      .from("expenses")
+      .select("id")
+      .eq("id", expenseAId)
+      .maybeSingle();
+
+    expect(data).toBeNull();
+  });
+
+  it("user B cannot insert expense into org A project", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client.from("expenses").insert({
+      organization_id: orgAId,
+      project_id: projectAId,
+      category: "otros",
+      description: "Unauthorized expense",
+      amount: 100,
+      expense_date: "2025-06-06",
+      created_by: userBId,
+    });
+
+    expect(data).toBeNull();
+    expect(error).not.toBeNull();
+  });
+
   it("user B cannot insert payment into org A project", async () => {
     const token = await signIn(`rls-b-${suffix}@constructa.test`);
     const client = anonClient(token);
@@ -633,6 +713,104 @@ describe("attendance and payroll utils (unit)", () => {
 
     const amount = calculateAttendanceAmount(160, "overtime", 10);
     expect(amount).toBe(220);
+  });
+});
+
+describe("financial aggregation (unit)", () => {
+  it("sums materials, payroll and registered expenses", async () => {
+    const { calculateProjectSpent } = await import("@constructa/utils");
+
+    const total = calculateProjectSpent({
+      materials_cost: 12000,
+      payroll_cost: 4500,
+      registered_expenses: 800,
+    });
+
+    expect(total).toBe(17300);
+  });
+
+  it("calculates budget used percentage", async () => {
+    const { calculateBudgetUsedPct } = await import("@constructa/utils");
+
+    expect(calculateBudgetUsedPct(85000, 100000)).toBe(85);
+    expect(calculateBudgetUsedPct(5000, null)).toBe(0);
+  });
+
+  it("detects budget alert when spent > 80% and progress < 70%", async () => {
+    const { detectBudgetAlert } = await import("@constructa/utils");
+
+    const alert = detectBudgetAlert({
+      project_id: "p1",
+      project_name: "Casa Zona 10",
+      budget_used_pct: 85,
+      progress_pct: 55,
+    });
+
+    expect(alert).not.toBeNull();
+    expect(alert?.severity).toBe("high");
+    expect(alert?.message).toContain("85.0%");
+  });
+
+  it("returns null alert when progress is sufficient", async () => {
+    const { detectBudgetAlert } = await import("@constructa/utils");
+
+    const alert = detectBudgetAlert({
+      project_id: "p1",
+      project_name: "Casa Zona 10",
+      budget_used_pct: 85,
+      progress_pct: 75,
+    });
+
+    expect(alert).toBeNull();
+  });
+
+  it("builds project financial summary with breakdown", async () => {
+    const { buildProjectFinancialSummary } = await import(
+      "../../apps/web/lib/finance/summary"
+    );
+
+    const summary = buildProjectFinancialSummary(
+      {
+        id: "proj-1",
+        name: "Obra Norte",
+        status: "active",
+        total_budget: 200000,
+        client_advance: 50000,
+      },
+      [
+        { project_id: "proj-1", amount: 50000, payment_date: "2025-06-01" },
+        { project_id: "proj-1", amount: 30000, payment_date: "2025-06-15" },
+      ],
+      [{ project_id: "proj-1", amount: 2000, expense_date: "2025-06-10" }],
+      [
+        {
+          project_id: "proj-1",
+          total_cost: 15000,
+          created_at: "2025-06-05T10:00:00Z",
+        },
+      ],
+      [
+        {
+          project_id: "proj-1",
+          amount_paid: 8000,
+          work_date: "2025-06-03",
+        },
+      ],
+      [
+        { project_id: "proj-1", progress_pct: 50 },
+        { project_id: "proj-1", progress_pct: 60 },
+      ],
+    );
+
+    expect(summary.total_spent).toBe(25000);
+    expect(summary.total_received).toBe(80000);
+    expect(summary.breakdown.materials_cost).toBe(15000);
+    expect(summary.breakdown.payroll_cost).toBe(8000);
+    expect(summary.breakdown.registered_expenses).toBe(2000);
+    expect(summary.budget_used_pct).toBe(12.5);
+    expect(summary.progress_pct).toBe(55);
+    expect(summary.pending_receivable).toBe(120000);
+    expect(summary.alert).toBeNull();
   });
 });
 

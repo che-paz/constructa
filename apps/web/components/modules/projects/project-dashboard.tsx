@@ -9,12 +9,14 @@ import type {
   PaymentBalance,
   PayrollSummary,
   Project,
+  ProjectFinancialSummary,
   ProjectSummary,
   ScheduleSummary,
   Stage,
   Worker,
   WorkerAttendance,
 } from "@constructa/types";
+import { ProjectFinancialDetail } from "@/components/modules/finance/project-financial-detail";
 import { formatGtq, projectStatusLabel } from "@constructa/utils";
 import { MaterialsSection } from "@/components/modules/materials/materials-section";
 import { WorkersSection } from "@/components/modules/workers/workers-section";
@@ -47,6 +49,7 @@ interface ProjectDashboardProps {
   workers: Worker[];
   attendance: WorkerAttendance[];
   payroll: PayrollSummary;
+  financialSummary: ProjectFinancialSummary;
   clientPortalUrl: string | null;
 }
 
@@ -63,6 +66,7 @@ export function ProjectDashboard({
   workers,
   attendance,
   payroll,
+  financialSummary,
   clientPortalUrl,
 }: ProjectDashboardProps) {
   const [copied, setCopied] = useState(false);
@@ -144,6 +148,8 @@ export function ProjectDashboard({
           </CardContent>
         </Card>
       )}
+
+      <ProjectFinancialDetail summary={financialSummary} />
 
       <StagesSection projectId={project.id} schedule={schedule} />
 

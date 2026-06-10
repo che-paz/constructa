@@ -201,3 +201,13 @@ export type CreateMaterialBudgetInput = z.infer<typeof CreateMaterialBudgetSchem
 export type CreateWorkerInput = z.infer<typeof CreateWorkerSchema>;
 export type UpdateWorkerInput = z.infer<typeof UpdateWorkerSchema>;
 export type CreateAttendanceInput = z.infer<typeof CreateAttendanceSchema>;
+
+export const CashflowPeriodSchema = z.enum(["week", "month"]);
+
+export const CashflowQuerySchema = z.object({
+  period: CashflowPeriodSchema.default("month"),
+  project: z.string().uuid().optional(),
+  reference_date: z.string().date().optional(),
+});
+
+export type CashflowQueryInput = z.infer<typeof CashflowQuerySchema>;

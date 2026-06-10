@@ -5,6 +5,7 @@ import type {
   MaterialSummary,
   PayrollSummary,
   Project,
+  ProjectFinancialSummary,
   ProjectSummary,
   ScheduleSummary,
   Stage,
@@ -12,6 +13,7 @@ import type {
   WorkerAttendance,
 } from "@constructa/types";
 import { getAuthContext } from "@/lib/auth/get-organization";
+import { buildProjectFinancialSummary } from "@/lib/finance/summary";
 import { attachInvoiceUrls } from "@/lib/materials/invoice-url";
 import { buildMaterialAlerts, buildMaterialSummary } from "@/lib/materials/summary";
 import { computePaymentBalance } from "@/lib/payments/balance";
@@ -50,6 +52,9 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
     { data: budgets },
     { data: workers },
     { data: attendance },
+    { data: expenses },
+    { data: allAttendance },
+    { data: allMaterials },
   ] = await Promise.all([
     supabase
       .from("stages")
@@ -93,6 +98,23 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       .eq("project_id", params.id)
       .eq("organization_id", auth.organization.id)
       .order("work_date", { ascending: false }),
+    supabase
+      .from("expenses")
+      .select("project_id, amount, expense_date")
+      .eq("project_id", params.id)
+      .eq("organization_id", auth.organization.id)
+      .is("deleted_at", null),
+    supabase
+      .from("worker_attendance")
+      .select("project_id, amount_paid, work_date")
+      .eq("project_id", params.id)
+      .eq("organization_id", auth.organization.id),
+    supabase
+      .from("material_entries")
+      .select("project_id, total_cost, created_at")
+      .eq("project_id", params.id)
+      .eq("organization_id", auth.organization.id)
+      .is("deleted_at", null),
   ]);
 
   const stages = ((stagesRaw ?? []) as Stage[]).map((s) =>
@@ -137,6 +159,28 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
     searchParams.week,
   );
 
+  const financialSummary: ProjectFinancialSummary = buildProjectFinancialSummary(
+    {
+      id: project.id,
+      name: project.name,
+      status: project.status,
+      total_budget: project.total_budget,
+      client_advance: project.client_advance,
+    },
+    (payments ?? []).map((p) => ({
+      project_id: p.project_id,
+      amount: p.amount,
+      payment_date: p.payment_date,
+    })),
+    expenses ?? [],
+    allMaterials ?? [],
+    allAttendance ?? [],
+    (stagesRaw ?? []).map((s) => ({
+      project_id: s.project_id,
+      progress_pct: s.progress_pct,
+    })),
+  );
+
   const [paymentsWithUrls, entriesWithUrls] = await Promise.all([
     attachReceiptUrls(payments ?? []),
     attachInvoiceUrls(materialEntries ?? []),
@@ -172,6 +216,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       workers={(workers ?? []) as Worker[]}
       attendance={(attendance ?? []) as WorkerAttendance[]}
       payroll={payroll}
+      financialSummary={financialSummary}
       clientPortalUrl={clientPortalUrl}
     />
   );

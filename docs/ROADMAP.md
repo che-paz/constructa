@@ -160,57 +160,57 @@ Tener un sistema donde un constructor puede crear su cuenta, agregar proyectos, 
 
 ---
 
-## FASE 3 — Inteligencia Artificial
-**Estado: 🔲 NO INICIADO**  
-**Duración:** 4 semanas (Sprints 6–7)  
-**Objetivo:** Diferenciación real. Lo que ningún competidor local tiene.
+## FASE 3 — Inteligencia Artificial (web)
+**Estado: 🟡 EN CURSO (Sprint 06)**  
+**Duración:** 2 semanas (Sprint 6) — *ajustado: sin WhatsApp ni voz*  
+**Objetivo:** Diferenciación con asistente IA y reportes automáticos en la web.
 
-### Módulos a desarrollar
+### Módulos a desarrollar (Sprint 06)
 - Módulo 07: Reportes Automáticos
 - Módulo 11: Asistente IA Constructor
-- Módulo 12: WhatsApp Integrado
-- Módulo 13: Captura por Voz
+
+### Módulos diferidos (fuera de alcance inmediato)
+- Módulo 12: WhatsApp Integrado → **PENDIENTE** (post-beta / cuando Meta apruebe)
+- Módulo 13: Captura por Voz → **PENDIENTE** (requiere app móvil)
 
 ### Tareas técnicas
 
 #### Sprint 6 (semanas 13–14): Asistente y Reportes
 ```
 - [ ] Integración Anthropic API con rate limiting
-- [ ] UI del asistente (chat interface)
+- [ ] UI del asistente (chat interface con streaming)
 - [ ] Sistema de inyección de contexto (datos del tenant)
 - [ ] Generación de reportes semanales con Claude
-- [ ] Template PDF de reporte (React-PDF)
+- [ ] Template PDF de reporte (React-PDF o Puppeteer — decidir)
 - [ ] Guardado y descarga de reportes
 - [ ] Sistema de quota por plan
+- [ ] Tests de contexto IA + aislamiento por org
 ```
 
-#### Sprint 7 (semanas 15–16): WhatsApp y Voz
+#### ~~Sprint 7~~ — WhatsApp y Voz (DIFERIDO)
 ```
-- [ ] Setup Meta WhatsApp Business API
-- [ ] Webhook receiver y verificación
-- [ ] Parser de mensajes con Claude
-- [ ] Registro automático desde WhatsApp (materiales, asistencia)
-- [ ] Respuesta de confirmación automática
-- [ ] Transcripción de voz con Whisper API
-- [ ] UI de captura por voz en app móvil
+⏸️ No programado por ahora. Reactivar cuando:
+- Beta cerrada valide demanda de campo
+- App móvil Expo esté en roadmap activo
+- Cuenta WhatsApp Business API aprobada
 ```
 
 **Archivos afectados:**
 - `AI_SYSTEM.md` (actualizar con implementaciones reales)
 - `FEATURES/Asistente-IA-constructor.md`
 - `FEATURES/Reportes-Automaticos.md`
-- `archive/sprint-06.md`, `sprint-07.md`
+- `archive/sprint-06.md`
 
 **Dependencias:** Fase 2 completa, datos reales en BD para probar IA
 
 **Riesgos:**
-- WhatsApp Business API: proceso de aprobación de Meta puede tomar semanas → iniciar gestión en Fase 2
 - Costos de IA en producción: monitorear desde día 1 con alertas
+- PDF: elegir React-PDF vs Puppeteer al inicio del sprint
 
 **Criterio de finalización:**
 - Reporte semanal generado por IA en < 30 segundos
-- Supervisor puede reportar materiales y asistencia desde WhatsApp
 - Asistente responde consultas sobre datos de la empresa correctamente
+- Rate limit y quotas por plan operativos
 
 ---
 
@@ -272,10 +272,10 @@ Tener un sistema donde un constructor puede crear su cuenta, agregar proyectos, 
 | 0 | 1 | Setup completo |
 | 1 | 3 | Auth + Proyectos + Pagos + Portal |
 | 2 | 5 | Materiales + Personal + Financiero |
-| 3 | 4 | IA + WhatsApp + Reportes |
+| 3 | 2 | IA + Reportes (web) |
 | 4 | 2 | Beta cerrada con 5 clientes |
 | 5 | 2 | Lanzamiento comercial |
-| **Total** | **~17 semanas** | **MVP en mercado** |
+| **Total** | **~15 semanas** | **MVP en mercado** |
 
 ---
 
@@ -295,6 +295,7 @@ El MVP de CONSTRUCTA es la combinación de módulos que justifica el pago del **
 7. Asistente IA básico
 
 **Post-MVP (meses 5+):**
-8. WhatsApp integrado
-9. Fotos inteligentes
-10. Detección de riesgos
+8. WhatsApp integrado *(diferido)*
+9. Captura por voz *(diferido)*
+10. Fotos inteligentes
+11. Detección de riesgos
