@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import type {
   Expense,
@@ -218,23 +219,31 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
     : null;
 
   return (
-    <ProjectDashboard
-      project={project as Project}
-      summary={summary}
-      schedule={schedule}
-      balance={balance}
-      payments={paymentsWithUrls}
-      catalog={(catalog ?? []) as MaterialCatalog[]}
-      materialEntries={entriesWithUrls}
-      materialSummary={materialSummary}
-      materialAlerts={materialAlerts}
-      workers={(workers ?? []) as Worker[]}
-      attendance={(attendance ?? []) as WorkerAttendance[]}
-      payroll={payroll}
-      financialSummary={financialSummary}
-      expenses={(expenseRows ?? []) as Expense[]}
-      reports={reports ?? []}
-      clientPortalUrl={clientPortalUrl}
-    />
+    <Suspense
+      fallback={
+        <div className="py-12 text-center text-sm text-muted-foreground">
+          Cargando proyecto…
+        </div>
+      }
+    >
+      <ProjectDashboard
+        project={project as Project}
+        summary={summary}
+        schedule={schedule}
+        balance={balance}
+        payments={paymentsWithUrls}
+        catalog={(catalog ?? []) as MaterialCatalog[]}
+        materialEntries={entriesWithUrls}
+        materialSummary={materialSummary}
+        materialAlerts={materialAlerts}
+        workers={(workers ?? []) as Worker[]}
+        attendance={(attendance ?? []) as WorkerAttendance[]}
+        payroll={payroll}
+        financialSummary={financialSummary}
+        expenses={(expenseRows ?? []) as Expense[]}
+        reports={reports ?? []}
+        clientPortalUrl={clientPortalUrl}
+      />
+    </Suspense>
   );
 }

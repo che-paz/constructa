@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type {
   Expense,
   MaterialAlert,
@@ -23,12 +24,17 @@ import { formatGtq, projectStatusLabel } from "@constructa/utils";
 import { MaterialsSection } from "@/components/modules/materials/materials-section";
 import { WorkersSection } from "@/components/modules/workers/workers-section";
 import type { MaterialEntryWithInvoiceUrl } from "@/components/modules/materials/material-inventory-table";
-import {
-  PaymentsSection,
-} from "@/components/modules/payments/payments-section";
+import { PaymentsSection } from "@/components/modules/payments/payments-section";
 import type { PaymentWithReceiptUrl } from "@/components/modules/payments/payment-list";
 import { StagesSection } from "@/components/modules/schedule/stages-section";
 import { ReportsSection } from "@/components/modules/reports/reports-section";
+import { MaterialAlertBanner } from "@/components/modules/materials/material-alert-banner";
+import {
+  FinanceSubNav,
+  isValidProjectTab,
+  ProjectTabNav,
+  type ProjectTabId,
+} from "@/components/modules/projects/project-tab-nav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -86,6 +92,27 @@ export function ProjectDashboard({
   clientPortalUrl,
 }: ProjectDashboardProps) {
   const [copied, setCopied] = useState(false);
+  const [financeSection, setFinanceSection] = useState<"pagos" | "gastos">(
+    "pagos",
+  );
+
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const tabParam = searchParams.get("tab");
+  const activeTab: ProjectTabId = isValidProjectTab(tabParam)
+    ? tabParam
+    : "resumen";
+
+  const setTab = useCallback(
+    (tab: ProjectTabId) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", tab);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
   const location = [project.address, project.municipality, project.department]
     .filter(Boolean)
@@ -117,125 +144,259 @@ export function ProjectDashboard({
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Avance general</CardDescription>
-            <CardTitle className="text-3xl">{summary.progress_pct}%</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Presupuesto</CardDescription>
-            <CardTitle className="text-2xl">
-              {project.total_budget != null
-                ? formatGtq(budget)
-                : "Sin definir"}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Anticipo acordado</CardDescription>
-            <CardTitle className="text-2xl">
-              {formatGtq(balance.client_advance)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Saldo pendiente de la obra</CardDescription>
-            <CardTitle className="text-2xl">
-              {formatGtq(balance.pending_balance)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
+      <ProjectTabNav
+        activeTab={activeTab}
+        onTabChange={setTab}
+        materialAlertCount={materialAlerts.length}
+      />
 
-      {project.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Descripción</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              {project.description}
-            </p>
-          </CardContent>
-        </Card>
+      {activeTab === "resumen" && (
+        <div className="space-y-6 pt-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Avance general</CardDescription>
+                <CardTitle className="text-3xl">
+                  {summary.progress_pct}%
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Presupuesto</CardDescription>
+                <CardTitle className="text-2xl">
+                  {project.total_budget != null
+                    ? formatGtq(budget)
+                    : "Sin definir"}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Gastado</CardDescription>
+                <CardTitle className="text-2xl">
+                  {formatGtq(financialSummary.total_spent)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Saldo pendiente</CardDescription>
+                <CardTitle className="text-2xl">
+                  {formatGtq(balance.pending_balance)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          </div>
+
+          {materialAlerts.length > 0 && (
+            <MaterialAlertBanner alerts={materialAlerts} />
+          )}
+
+          {project.description && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Descripción</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {project.description}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          <ProjectFinancialDetail summary={financialSummary} />
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card
+              className="cursor-pointer transition-colors hover:bg-muted/50"
+              onClick={() => setTab("cronograma")}
+            >
+              <CardHeader className="pb-2">
+                <CardDescription>Cronograma</CardDescription>
+                <CardTitle className="text-lg">
+                  {schedule.completed_stages}/{schedule.total_stages} etapas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">
+                  {schedule.delayed_stages > 0
+                    ? `${schedule.delayed_stages} con atraso crítico`
+                    : "Sin retrasos críticos"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card
+              className="cursor-pointer transition-colors hover:bg-muted/50"
+              onClick={() => setTab("materiales")}
+            >
+              <CardHeader className="pb-2">
+                <CardDescription>Materiales</CardDescription>
+                <CardTitle className="text-lg">
+                  {materialEntries.length} movimientos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">
+                  {materialAlerts.length > 0
+                    ? `${materialAlerts.length} alerta(s) de desvío`
+                    : "Consumo bajo control"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card
+              className="cursor-pointer transition-colors hover:bg-muted/50"
+              onClick={() => setTab("personal")}
+            >
+              <CardHeader className="pb-2">
+                <CardDescription>Personal</CardDescription>
+                <CardTitle className="text-lg">
+                  {payroll.workers_count} trabajadores
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">
+                  Planilla semana: {formatGtq(payroll.total_amount)}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {clientPortalUrl && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle className="text-base">Portal del cliente</CardTitle>
+                  <CardDescription>
+                    Comparte el avance y pagos con tu cliente
+                  </CardDescription>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setTab("cliente")}
+                >
+                  Gestionar
+                </Button>
+              </CardHeader>
+            </Card>
+          )}
+
+          <ProjectDatesFooter project={project} />
+        </div>
       )}
 
-      <ProjectFinancialDetail summary={financialSummary} />
-
-      <StagesSection projectId={project.id} schedule={schedule} />
-
-      <MaterialsSection
-        projectId={project.id}
-        catalog={catalog}
-        stages={schedule.stages as Stage[]}
-        entries={materialEntries}
-        summary={materialSummary}
-        alerts={materialAlerts}
-      />
-
-      <WorkersSection
-        projectId={project.id}
-        workers={workers}
-        attendance={attendance}
-        payroll={payroll}
-      />
-
-      {clientPortalUrl && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Portal del cliente</CardTitle>
-            <CardDescription>
-              Comparte este enlace con tu cliente para que vea el avance y los
-              pagos
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <code className="flex-1 truncate rounded-md bg-muted px-3 py-2 text-xs">
-              {clientPortalUrl}
-            </code>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={copyPortalLink}>
-                {copied ? "Copiado" : "Copiar enlace"}
-              </Button>
-              <Button asChild variant="secondary">
-                <Link href={clientPortalUrl} target="_blank">
-                  Abrir portal
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      {activeTab === "cronograma" && (
+        <div className="pt-2">
+          <StagesSection projectId={project.id} schedule={schedule} />
+        </div>
       )}
 
-      <PaymentsSection
-        projectId={project.id}
-        balance={balance}
-        payments={payments}
-      />
+      {activeTab === "materiales" && (
+        <div className="pt-2">
+          <MaterialsSection
+            projectId={project.id}
+            catalog={catalog}
+            stages={schedule.stages as Stage[]}
+            entries={materialEntries}
+            summary={materialSummary}
+            alerts={materialAlerts}
+          />
+        </div>
+      )}
 
-      <ExpensesSection projectId={project.id} expenses={expenses} />
+      {activeTab === "personal" && (
+        <div className="pt-2">
+          <WorkersSection
+            projectId={project.id}
+            workers={workers}
+            attendance={attendance}
+            payroll={payroll}
+          />
+        </div>
+      )}
 
-      <ReportsSection projectId={project.id} initialReports={reports} />
+      {activeTab === "finanzas" && (
+        <div className="space-y-6 pt-2">
+          <FinanceSubNav active={financeSection} onChange={setFinanceSection} />
+          {financeSection === "pagos" ? (
+            <PaymentsSection
+              projectId={project.id}
+              balance={balance}
+              payments={payments}
+            />
+          ) : (
+            <ExpensesSection projectId={project.id} expenses={expenses} />
+          )}
+        </div>
+      )}
 
-      <div className="flex gap-2 text-sm text-muted-foreground">
-        {project.start_date && (
-          <span>
-            Inicio:{" "}
-            {new Date(project.start_date).toLocaleDateString("es-GT")}
-          </span>
-        )}
-        {project.planned_end_date && (
-          <span>
-            · Fin previsto:{" "}
-            {new Date(project.planned_end_date).toLocaleDateString("es-GT")}
-          </span>
-        )}
-      </div>
+      {activeTab === "cliente" && (
+        <div className="pt-2">
+          {clientPortalUrl ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Portal del cliente</CardTitle>
+                <CardDescription>
+                  Comparte este enlace con tu cliente para que vea el avance y
+                  los pagos de su obra
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <code className="flex-1 truncate rounded-md bg-muted px-3 py-2 text-xs">
+                  {clientPortalUrl}
+                </code>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={copyPortalLink}>
+                    {copied ? "Copiado" : "Copiar enlace"}
+                  </Button>
+                  <Button asChild variant="secondary">
+                    <Link href={clientPortalUrl} target="_blank">
+                      Abrir portal
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                Este proyecto no tiene token de portal configurado. Edita el
+                proyecto para habilitarlo.
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {activeTab === "reportes" && (
+        <div className="pt-2">
+          <ReportsSection projectId={project.id} initialReports={reports} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProjectDatesFooter({ project }: { project: Project }) {
+  if (!project.start_date && !project.planned_end_date) return null;
+
+  return (
+    <div className="flex gap-2 text-sm text-muted-foreground">
+      {project.start_date && (
+        <span>
+          Inicio:{" "}
+          {new Date(project.start_date).toLocaleDateString("es-GT")}
+        </span>
+      )}
+      {project.planned_end_date && (
+        <span>
+          · Fin previsto:{" "}
+          {new Date(project.planned_end_date).toLocaleDateString("es-GT")}
+        </span>
+      )}
     </div>
   );
 }
