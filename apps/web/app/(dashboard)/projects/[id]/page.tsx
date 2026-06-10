@@ -1,8 +1,19 @@
 import { redirect } from "next/navigation";
-import type { Project, ProjectSummary } from "@constructa/types";
+import type {
+  MaterialAlert,
+  MaterialCatalog,
+  MaterialSummary,
+  Project,
+  ProjectSummary,
+  ScheduleSummary,
+  Stage,
+} from "@constructa/types";
 import { getAuthContext } from "@/lib/auth/get-organization";
+import { attachInvoiceUrls } from "@/lib/materials/invoice-url";
+import { buildMaterialAlerts, buildMaterialSummary } from "@/lib/materials/summary";
 import { computePaymentBalance } from "@/lib/payments/balance";
 import { attachReceiptUrls } from "@/lib/payments/receipt-url";
+import { enrichStageWithDelay, isStageCriticallyDelayed } from "@/lib/schedule/delay";
 import { createClient } from "@/lib/supabase/server";
 import { ProjectDashboard } from "@/components/modules/projects/project-dashboard";
 
@@ -18,7 +29,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   const { data: project } = await supabase
     .from("projects")
-    .select("*, stages(*)")
+    .select("*")
     .eq("id", params.id)
     .eq("organization_id", auth.organization.id)
     .is("deleted_at", null)
@@ -26,28 +37,73 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   if (!project) redirect("/projects");
 
-  const { data: stages } = await supabase
-    .from("stages")
-    .select("progress_pct")
-    .eq("project_id", params.id)
-    .eq("organization_id", auth.organization.id);
+  const [
+    { data: stagesRaw },
+    { data: payments },
+    { data: catalog },
+    { data: materialEntries },
+    { data: budgets },
+  ] = await Promise.all([
+    supabase
+      .from("stages")
+      .select("*")
+      .eq("project_id", params.id)
+      .eq("organization_id", auth.organization.id)
+      .order("order_index", { ascending: true }),
+    supabase
+      .from("payments")
+      .select("*")
+      .eq("project_id", params.id)
+      .eq("organization_id", auth.organization.id)
+      .is("deleted_at", null)
+      .order("payment_date", { ascending: false }),
+    supabase
+      .from("material_catalog")
+      .select("*")
+      .eq("organization_id", auth.organization.id)
+      .order("name", { ascending: true }),
+    supabase
+      .from("material_entries")
+      .select("*, material:material_catalog(*)")
+      .eq("project_id", params.id)
+      .eq("organization_id", auth.organization.id)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("stage_material_budgets")
+      .select("*, stage:stages(name), material:material_catalog(name, unit)")
+      .eq("project_id", params.id)
+      .eq("organization_id", auth.organization.id),
+  ]);
 
-  const stagesList = stages ?? [];
+  const stages = ((stagesRaw ?? []) as Stage[]).map((s) =>
+    enrichStageWithDelay(s),
+  );
+
   const progress_pct =
-    stagesList.length > 0
+    stages.length > 0
       ? Math.round(
-          stagesList.reduce((sum, s) => sum + (s.progress_pct ?? 0), 0) /
-            stagesList.length,
+          stages.reduce((sum, s) => sum + (s.progress_pct ?? 0), 0) /
+            stages.length,
         )
       : 0;
 
-  const { data: payments } = await supabase
-    .from("payments")
-    .select("*")
-    .eq("project_id", params.id)
-    .eq("organization_id", auth.organization.id)
-    .is("deleted_at", null)
-    .order("payment_date", { ascending: false });
+  const schedule: ScheduleSummary = {
+    project_id: params.id,
+    total_stages: stages.length,
+    completed_stages: stages.filter((s) => s.status === "completed").length,
+    delayed_stages: stages.filter((s) => isStageCriticallyDelayed(s)).length,
+    total_delay_days: stages.reduce((sum, s) => sum + (s.delay_days ?? 0), 0),
+    progress_pct,
+    stages,
+  };
+
+  const materialSummary: MaterialSummary = buildMaterialSummary(
+    params.id,
+    budgets ?? [],
+    materialEntries ?? [],
+  );
+  const materialAlerts: MaterialAlert[] = buildMaterialAlerts(materialSummary);
 
   const balance = computePaymentBalance(
     project.total_budget,
@@ -55,7 +111,10 @@ export default async function ProjectDetailPage({ params }: Props) {
     payments ?? [],
   );
 
-  const paymentsWithUrls = await attachReceiptUrls(payments ?? []);
+  const [paymentsWithUrls, entriesWithUrls] = await Promise.all([
+    attachReceiptUrls(payments ?? []),
+    attachInvoiceUrls(materialEntries ?? []),
+  ]);
 
   const summary: ProjectSummary = {
     id: project.id,
@@ -64,7 +123,7 @@ export default async function ProjectDetailPage({ params }: Props) {
     total_budget: project.total_budget,
     client_advance: project.client_advance,
     progress_pct,
-    stages_count: stagesList.length,
+    stages_count: stages.length,
   };
 
   const appUrl =
@@ -75,19 +134,15 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   return (
     <ProjectDashboard
-      project={
-        project as Project & {
-          stages?: {
-            id: string;
-            name: string;
-            progress_pct: number;
-            status: string;
-          }[];
-        }
-      }
+      project={project as Project}
       summary={summary}
+      schedule={schedule}
       balance={balance}
       payments={paymentsWithUrls}
+      catalog={(catalog ?? []) as MaterialCatalog[]}
+      materialEntries={entriesWithUrls}
+      materialSummary={materialSummary}
+      materialAlerts={materialAlerts}
       clientPortalUrl={clientPortalUrl}
     />
   );

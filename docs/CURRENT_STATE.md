@@ -4,26 +4,26 @@
 
 ---
 
-## Estado global: FASE 1 — FUNDAMENTOS (Sprint 02)
+## Estado global: FASE 2 — CORE MVP (Sprint 03)
 
 ```
-[██████████████████░░] 55% — Sprint 02 completo · listo para Sprint 03
+[████████████████████░░] 70% — Sprint 03 completo · listo para Sprint 04
 ```
 
 ---
 
 ## Última sesión de trabajo
 
-- **Fecha:** 2026-06-09
+- **Fecha:** 2026-06-10
 - **Qué se hizo:**
-  - Módulo 05 Pagos: CRUD vía API (`/api/projects/[id]/payments`, balance, soft delete)
-  - Upload comprobantes → Supabase Storage bucket `payment-receipts`
-  - Saldo automático: `client_advance − pagos registrados`
-  - Módulo 06 Portal del Cliente: `/client/[token]` y `/client/[token]/payments`
-  - Tests RLS: 5 tests de aislamiento org A/B + 1 unit test de balance
-  - Migración `20250609100009_storage_receipts.sql` aplicada al cloud
-- **Archivos clave:** `app/api/projects/[id]/payments/`, `app/client/[token]/`, `components/modules/payments/`, `tests/rls/org-isolation.test.ts`
-- **Próxima tarea inmediata:** Sprint 03 — Materiales + Cronograma
+  - Módulo 02 Cronograma: CRUD etapas, timeline/Gantt simplificado, días de atraso, recálculo al marcar retraso
+  - Módulo 03 Materiales: catálogo org, movimientos (5 tipos), upload facturas, real vs esperado, alertas >15%
+  - APIs: stages, schedule/summary, materials/catalog, entries, summary, alerts, budgets
+  - Migraciones: `stage_material_budgets`, bucket `material-invoices`
+  - Tests RLS: +5 tests materiales (15 total) + 3 unit tests delay/deviation
+  - Refinamiento UI materiales: presupuesto por etapa separado de registrar movimiento; tabla Consumo vs presupuesto (Comprado / Consumido / Desvío)
+- **Archivos clave:** `app/api/projects/[id]/stages/`, `app/api/materials/`, `components/modules/schedule/`, `components/modules/materials/`
+- **Próxima tarea inmediata:** Sprint 04 — Personal y Planilla
 
 ---
 
@@ -38,20 +38,25 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-01.md`
 **Sprint 02 — Pagos + Portal del Cliente**  
 Estado: ✅ COMPLETADO → ver `archive/sprint-02.md`
 
+**Sprint 03 — Materiales + Cronograma**  
+Estado: ✅ COMPLETADO → ver `archive/sprint-03.md`
+
 | Tarea | Estado | Notas |
 |---|---|---|
-| Módulo Pagos (Módulo 05) | ✅ DONE | CRUD, historial, saldo automático |
-| Upload comprobantes (Storage) | ✅ DONE | Bucket `payment-receipts` |
-| Portal del Cliente (Módulo 06) | ✅ DONE | Acceso con `client_token` |
-| Tests RLS aislamiento orgs | ✅ DONE | `pnpm test` — 6 tests verdes |
+| Cronograma CRUD + timeline | ✅ DONE | Alerta >5d atraso |
+| Recálculo al marcar retraso | ✅ DONE | Empuja etapas siguientes |
+| Catálogo materiales | ✅ DONE | CRUD por organización |
+| Movimientos + facturas | ✅ DONE | 5 tipos + Storage |
+| Real vs esperado + alertas | ✅ DONE | `stage_material_budgets` |
+| Tests RLS materiales | ✅ DONE | `pnpm test` — 15 tests verdes |
 
 ## Módulos: estado de desarrollo
 
 | Módulo | Estado | Sprint | Notas |
 |---|---|---|---|
 | 01 Gestión de Proyectos | 🟡 MVP BASE | Sprint 01 | CRUD + dashboard individual |
-| 02 Cronograma Inteligente | 🔲 NO INICIADO | Sprint 03 | |
-| 03 Control de Materiales | 🔲 NO INICIADO | Sprint 03 | Mayor ROI percibido |
+| 02 Cronograma Inteligente | 🟡 MVP BASE | Sprint 03 | CRUD etapas + timeline + retrasos |
+| 03 Control de Materiales | 🟡 MVP BASE | Sprint 03 | Catálogo + movimientos + alertas |
 | 04 Control de Personal | 🔲 NO INICIADO | Sprint 04 | |
 | 05 Adelantos y Pagos | 🟡 MVP BASE | Sprint 02 | CRUD + comprobantes + saldo |
 | 06 Portal del Cliente | 🟡 MVP BASE | Sprint 02 | Token público, avance + pagos |
@@ -75,6 +80,8 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-02.md`
 | Onboarding bootstrap | Service role server-side | Client anon insert | RLS bloquea insert sin sesión activa |
 | Comprobantes de pago | Storage path en `receipt_url` | URL firmada persistida | Signed URLs se generan al leer |
 | Portal del cliente | Admin client server-side por token | RLS público anon | Sin auth; filtra campos sensibles |
+| Facturas de materiales | Storage path en `invoice_url` | URL firmada persistida | Mismo patrón que payment-receipts |
+| Presupuesto esperado materiales | Tabla `stage_material_budgets` | JSON en stages | Normalizado, queryable por etapa |
 
 ---
 

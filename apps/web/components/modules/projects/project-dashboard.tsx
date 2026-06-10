@@ -2,8 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { PaymentBalance, Project, ProjectSummary } from "@constructa/types";
+import type {
+  MaterialAlert,
+  MaterialCatalog,
+  MaterialSummary,
+  PaymentBalance,
+  Project,
+  ProjectSummary,
+  ScheduleSummary,
+  Stage,
+} from "@constructa/types";
 import { formatGtq, projectStatusLabel } from "@constructa/utils";
+import { MaterialsSection } from "@/components/modules/materials/materials-section";
+import type { MaterialEntryWithInvoiceUrl } from "@/components/modules/materials/material-inventory-table";
+import {
+  PaymentsSection,
+} from "@/components/modules/payments/payments-section";
+import type { PaymentWithReceiptUrl } from "@/components/modules/payments/payment-list";
+import { StagesSection } from "@/components/modules/schedule/stages-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,36 +29,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import {
-  PaymentsSection,
-} from "@/components/modules/payments/payments-section";
-import type { PaymentWithReceiptUrl } from "@/components/modules/payments/payment-list";
-
-interface Stage {
-  id: string;
-  name: string;
-  progress_pct: number;
-  status: string;
-}
-
-interface ProjectWithStages extends Project {
-  stages?: Stage[];
-}
 
 interface ProjectDashboardProps {
-  project: ProjectWithStages;
+  project: Project;
   summary: ProjectSummary;
+  schedule: ScheduleSummary;
   balance: PaymentBalance;
   payments: PaymentWithReceiptUrl[];
+  catalog: MaterialCatalog[];
+  materialEntries: MaterialEntryWithInvoiceUrl[];
+  materialSummary: MaterialSummary;
+  materialAlerts: MaterialAlert[];
   clientPortalUrl: string | null;
 }
 
 export function ProjectDashboard({
   project,
   summary,
+  schedule,
   balance,
   payments,
+  catalog,
+  materialEntries,
+  materialSummary,
+  materialAlerts,
   clientPortalUrl,
 }: ProjectDashboardProps) {
   const [copied, setCopied] = useState(false);
@@ -125,39 +135,16 @@ export function ProjectDashboard({
         </Card>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Cronograma</CardTitle>
-          <CardDescription>
-            {summary.stages_count === 0
-              ? "Sin etapas registradas aún"
-              : `${summary.stages_count} etapas`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {project.stages && project.stages.length > 0 ? (
-            <ul className="space-y-3">
-              {project.stages
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((stage, index) => (
-                  <li key={stage.id}>
-                    {index > 0 && <Separator className="mb-3" />}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{stage.name}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {stage.progress_pct}%
-                      </span>
-                    </div>
-                  </li>
-                ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Las etapas del cronograma se configurarán en el Sprint 03.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <StagesSection projectId={project.id} schedule={schedule} />
+
+      <MaterialsSection
+        projectId={project.id}
+        catalog={catalog}
+        stages={schedule.stages as Stage[]}
+        entries={materialEntries}
+        summary={materialSummary}
+        alerts={materialAlerts}
+      />
 
       {clientPortalUrl && (
         <Card>

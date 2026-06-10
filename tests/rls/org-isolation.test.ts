@@ -37,6 +37,12 @@ rlsSuite("RLS org isolation", () => {
   let projectBId = "";
   let paymentAId = "";
   let paymentBId = "";
+  let stageAId = "";
+  let stageBId = "";
+  let catalogAId = "";
+  let catalogBId = "";
+  let entryAId = "";
+  let entryBId = "";
   let tokenA = "";
 
   beforeAll(async () => {
@@ -162,11 +168,96 @@ rlsSuite("RLS org isolation", () => {
       .single();
     if (paymentBError || !paymentB) throw paymentBError;
     paymentBId = paymentB.id;
+
+    const { data: stageA, error: stageAError } = await admin
+      .from("stages")
+      .insert({
+        organization_id: orgAId,
+        project_id: projectAId,
+        name: `Stage A ${suffix}`,
+        order_index: 0,
+        created_by: userAId,
+      })
+      .select("id")
+      .single();
+    if (stageAError || !stageA) throw stageAError;
+    stageAId = stageA.id;
+
+    const { data: stageB, error: stageBError } = await admin
+      .from("stages")
+      .insert({
+        organization_id: orgBId,
+        project_id: projectBId,
+        name: `Stage B ${suffix}`,
+        order_index: 0,
+        created_by: userBId,
+      })
+      .select("id")
+      .single();
+    if (stageBError || !stageB) throw stageBError;
+    stageBId = stageB.id;
+
+    const { data: catalogA, error: catalogAError } = await admin
+      .from("material_catalog")
+      .insert({
+        organization_id: orgAId,
+        name: `Cemento A ${suffix}`,
+        unit: "bolsas",
+      })
+      .select("id")
+      .single();
+    if (catalogAError || !catalogA) throw catalogAError;
+    catalogAId = catalogA.id;
+
+    const { data: catalogB, error: catalogBError } = await admin
+      .from("material_catalog")
+      .insert({
+        organization_id: orgBId,
+        name: `Cemento B ${suffix}`,
+        unit: "bolsas",
+      })
+      .select("id")
+      .single();
+    if (catalogBError || !catalogB) throw catalogBError;
+    catalogBId = catalogB.id;
+
+    const { data: entryA, error: entryAError } = await admin
+      .from("material_entries")
+      .insert({
+        organization_id: orgAId,
+        project_id: projectAId,
+        material_id: catalogAId,
+        entry_type: "purchase",
+        quantity: 10,
+        created_by: userAId,
+      })
+      .select("id")
+      .single();
+    if (entryAError || !entryA) throw entryAError;
+    entryAId = entryA.id;
+
+    const { data: entryB, error: entryBError } = await admin
+      .from("material_entries")
+      .insert({
+        organization_id: orgBId,
+        project_id: projectBId,
+        material_id: catalogBId,
+        entry_type: "purchase",
+        quantity: 20,
+        created_by: userBId,
+      })
+      .select("id")
+      .single();
+    if (entryBError || !entryB) throw entryBError;
+    entryBId = entryB.id;
   });
 
   afterAll(async () => {
     if (!hasEnv || !admin) return;
 
+    await admin.from("material_entries").delete().in("id", [entryAId, entryBId]);
+    await admin.from("material_catalog").delete().in("id", [catalogAId, catalogBId]);
+    await admin.from("stages").delete().in("id", [stageAId, stageBId]);
     await admin.from("payments").delete().in("id", [paymentAId, paymentBId]);
     await admin.from("projects").delete().in("id", [projectAId, projectBId]);
     await admin
@@ -243,6 +334,76 @@ rlsSuite("RLS org isolation", () => {
     expect(data).toBeNull();
   });
 
+  it("user A sees only org A material catalog", async () => {
+    const token = await signIn(`rls-a-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client
+      .from("material_catalog")
+      .select("id, organization_id");
+
+    expect(error).toBeNull();
+    expect(data?.every((m) => m.organization_id === orgAId)).toBe(true);
+    expect(data?.some((m) => m.id === catalogBId)).toBe(false);
+  });
+
+  it("user B cannot read org A material catalog by id", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data } = await client
+      .from("material_catalog")
+      .select("id")
+      .eq("id", catalogAId)
+      .maybeSingle();
+
+    expect(data).toBeNull();
+  });
+
+  it("user A sees only org A material entries", async () => {
+    const token = await signIn(`rls-a-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client
+      .from("material_entries")
+      .select("id, organization_id")
+      .is("deleted_at", null);
+
+    expect(error).toBeNull();
+    expect(data?.every((e) => e.organization_id === orgAId)).toBe(true);
+    expect(data?.some((e) => e.id === entryBId)).toBe(false);
+  });
+
+  it("user B cannot read org A material entry by id", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data } = await client
+      .from("material_entries")
+      .select("id")
+      .eq("id", entryAId)
+      .maybeSingle();
+
+    expect(data).toBeNull();
+  });
+
+  it("user B cannot insert material entry into org A project", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client.from("material_entries").insert({
+      organization_id: orgAId,
+      project_id: projectAId,
+      material_id: catalogAId,
+      entry_type: "consumption",
+      quantity: 5,
+      created_by: userBId,
+    });
+
+    expect(data).toBeNull();
+    expect(error).not.toBeNull();
+  });
+
   it("user B cannot insert payment into org A project", async () => {
     const token = await signIn(`rls-b-${suffix}@constructa.test`);
     const client = anonClient(token);
@@ -258,6 +419,41 @@ rlsSuite("RLS org isolation", () => {
 
     expect(data).toBeNull();
     expect(error).not.toBeNull();
+  });
+});
+
+describe("schedule and materials utils (unit)", () => {
+  it("calculates stage delay days from planned end", async () => {
+    const { calculateStageDelayDays } = await import("@constructa/utils");
+
+    const delay = calculateStageDelayDays(
+      "2025-06-01",
+      null,
+      "in_progress",
+      "2025-06-10",
+    );
+
+    expect(delay).toBe(9);
+  });
+
+  it("returns zero delay when completed on time", async () => {
+    const { calculateStageDelayDays } = await import("@constructa/utils");
+
+    const delay = calculateStageDelayDays(
+      "2025-06-10",
+      "2025-06-08",
+      "completed",
+    );
+
+    expect(delay).toBe(0);
+  });
+
+  it("calculates material deviation percentage", async () => {
+    const { calculateMaterialDeviation } = await import("@constructa/utils");
+
+    expect(calculateMaterialDeviation(100, 120)).toBe(20);
+    expect(calculateMaterialDeviation(0, 10)).toBe(100);
+    expect(calculateMaterialDeviation(50, 40)).toBe(-20);
   });
 });
 

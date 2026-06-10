@@ -163,6 +163,22 @@ CREATE TABLE material_catalog (
 );
 ```
 
+### `stage_material_budgets` (presupuesto esperado por etapa/material)
+```sql
+CREATE TABLE stage_material_budgets (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id   UUID NOT NULL REFERENCES organizations(id),
+  project_id        UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  stage_id          UUID NOT NULL REFERENCES stages(id) ON DELETE CASCADE,
+  material_id       UUID NOT NULL REFERENCES material_catalog(id),
+  expected_quantity NUMERIC(10,2) NOT NULL,
+  created_by        UUID NOT NULL REFERENCES auth.users(id),
+  created_at        TIMESTAMPTZ DEFAULT now(),
+  updated_at        TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(stage_id, material_id)
+);
+```
+
 ### `material_entries` (movimientos de inventario)
 ```sql
 CREATE TABLE material_entries (
