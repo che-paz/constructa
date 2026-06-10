@@ -4,10 +4,10 @@
 
 ---
 
-## Estado global: FASE 2 — CORE MVP (Sprint 03)
+## Estado global: FASE 2 — CORE MVP (Sprint 04)
 
 ```
-[████████████████████░░] 70% — Sprint 03 completo · listo para Sprint 04
+[██████████████████████░░] 80% — Sprint 04 completo · listo para Sprint 05
 ```
 
 ---
@@ -16,14 +16,13 @@
 
 - **Fecha:** 2026-06-10
 - **Qué se hizo:**
-  - Módulo 02 Cronograma: CRUD etapas, timeline/Gantt simplificado, días de atraso, recálculo al marcar retraso
-  - Módulo 03 Materiales: catálogo org, movimientos (5 tipos), upload facturas, real vs esperado, alertas >15%
-  - APIs: stages, schedule/summary, materials/catalog, entries, summary, alerts, budgets
-  - Migraciones: `stage_material_budgets`, bucket `material-invoices`
-  - Tests RLS: +5 tests materiales (15 total) + 3 unit tests delay/deviation
-  - Refinamiento UI materiales: presupuesto por etapa separado de registrar movimiento; tabla Consumo vs presupuesto (Comprado / Consumido / Desvío)
-- **Archivos clave:** `app/api/projects/[id]/stages/`, `app/api/materials/`, `components/modules/schedule/`, `components/modules/materials/`
-- **Próxima tarea inmediata:** Sprint 04 — Personal y Planilla
+  - Módulo 04 Personal: CRUD trabajadores org, asistencia manual, cálculo horas/monto
+  - Planilla semanal en dashboard proyecto (tabla lun–dom, navegación por semana)
+  - Historial asistencia/pagos por trabajador (clic en nombre)
+  - APIs: workers, attendance, payroll
+  - Tests RLS: +5 workers/attendance (20 RLS total) + 4 unit tests payroll
+- **Archivos clave:** `app/api/workers/`, `app/api/attendance/`, `components/modules/workers/`, `lib/workers/`
+- **Próxima tarea inmediata:** Sprint 05 — Centro Financiero
 
 ---
 
@@ -41,14 +40,18 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-02.md`
 **Sprint 03 — Materiales + Cronograma**  
 Estado: ✅ COMPLETADO → ver `archive/sprint-03.md`
 
+**Sprint 04 — Personal y Planilla**  
+Estado: ✅ COMPLETADO → ver `archive/sprint-04.md`
+
 | Tarea | Estado | Notas |
 |---|---|---|
-| Cronograma CRUD + timeline | ✅ DONE | Alerta >5d atraso |
-| Recálculo al marcar retraso | ✅ DONE | Empuja etapas siguientes |
-| Catálogo materiales | ✅ DONE | CRUD por organización |
-| Movimientos + facturas | ✅ DONE | 5 tipos + Storage |
-| Real vs esperado + alertas | ✅ DONE | `stage_material_budgets` |
-| Tests RLS materiales | ✅ DONE | `pnpm test` — 15 tests verdes |
+| CRUD trabajadores | ✅ DONE | Org-scoped, jornal GTQ |
+| Asistencia manual | ✅ DONE | Upsert por día/proyecto/trabajador |
+| Cálculo horas y monto | ✅ DONE | full/half/absent/overtime |
+| Planilla semanal | ✅ DONE | Tabla + selector semana |
+| Historial por trabajador | ✅ DONE | En dashboard proyecto |
+| Tests RLS personal | ✅ DONE | `pnpm test` — 24 tests |
+| PDF planilla | 🔲 POST-MVP | React-PDF vs Puppeteer pendiente |
 
 ## Módulos: estado de desarrollo
 
@@ -57,7 +60,7 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-03.md`
 | 01 Gestión de Proyectos | 🟡 MVP BASE | Sprint 01 | CRUD + dashboard individual |
 | 02 Cronograma Inteligente | 🟡 MVP BASE | Sprint 03 | CRUD etapas + timeline + retrasos |
 | 03 Control de Materiales | 🟡 MVP BASE | Sprint 03 | Catálogo + movimientos + alertas |
-| 04 Control de Personal | 🔲 NO INICIADO | Sprint 04 | |
+| 04 Control de Personal | 🟡 MVP BASE | Sprint 04 | Asistencia + planilla semanal |
 | 05 Adelantos y Pagos | 🟡 MVP BASE | Sprint 02 | CRUD + comprobantes + saldo |
 | 06 Portal del Cliente | 🟡 MVP BASE | Sprint 02 | Token público, avance + pagos |
 | 07–14 | 🔲 NO INICIADO | Sprint 06+ | Post-MVP |
@@ -82,6 +85,8 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-03.md`
 | Portal del cliente | Admin client server-side por token | RLS público anon | Sin auth; filtra campos sensibles |
 | Facturas de materiales | Storage path en `invoice_url` | URL firmada persistida | Mismo patrón que payment-receipts |
 | Presupuesto esperado materiales | Tabla `stage_material_budgets` | JSON en stages | Normalizado, queryable por etapa |
+| Asistencia duplicada | Upsert `(project_id, worker_id, work_date)` | Insert siempre | Permite corregir jornada del día |
+| Cálculo jornal | Multiplicador por tipo + horas extra | Solo manual | full=1×, half=0.5×, overtime=1.5× + extras |
 
 ---
 
@@ -89,6 +94,7 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-03.md`
 
 - [ ] Estrategia de PDF: React-PDF vs Puppeteer
 - [ ] Reconocimiento facial para asistencia: opcional post-MVP
+- [ ] QR para asistencia en campo: MVP básico post-Sprint 04
 - [ ] Transcripción de voz: Whisper API vs Google Speech-to-Text
 - [ ] Push notifications: Expo Notifications vs OneSignal
 - [ ] Pasarela de pago GT: Stripe vs solución local

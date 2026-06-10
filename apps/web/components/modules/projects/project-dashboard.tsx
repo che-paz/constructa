@@ -7,13 +7,17 @@ import type {
   MaterialCatalog,
   MaterialSummary,
   PaymentBalance,
+  PayrollSummary,
   Project,
   ProjectSummary,
   ScheduleSummary,
   Stage,
+  Worker,
+  WorkerAttendance,
 } from "@constructa/types";
 import { formatGtq, projectStatusLabel } from "@constructa/utils";
 import { MaterialsSection } from "@/components/modules/materials/materials-section";
+import { WorkersSection } from "@/components/modules/workers/workers-section";
 import type { MaterialEntryWithInvoiceUrl } from "@/components/modules/materials/material-inventory-table";
 import {
   PaymentsSection,
@@ -40,6 +44,9 @@ interface ProjectDashboardProps {
   materialEntries: MaterialEntryWithInvoiceUrl[];
   materialSummary: MaterialSummary;
   materialAlerts: MaterialAlert[];
+  workers: Worker[];
+  attendance: WorkerAttendance[];
+  payroll: PayrollSummary;
   clientPortalUrl: string | null;
 }
 
@@ -53,6 +60,9 @@ export function ProjectDashboard({
   materialEntries,
   materialSummary,
   materialAlerts,
+  workers,
+  attendance,
+  payroll,
   clientPortalUrl,
 }: ProjectDashboardProps) {
   const [copied, setCopied] = useState(false);
@@ -144,6 +154,13 @@ export function ProjectDashboard({
         entries={materialEntries}
         summary={materialSummary}
         alerts={materialAlerts}
+      />
+
+      <WorkersSection
+        projectId={project.id}
+        workers={workers}
+        attendance={attendance}
+        payroll={payroll}
       />
 
       {clientPortalUrl && (

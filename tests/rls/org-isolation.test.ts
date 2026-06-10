@@ -43,6 +43,10 @@ rlsSuite("RLS org isolation", () => {
   let catalogBId = "";
   let entryAId = "";
   let entryBId = "";
+  let workerAId = "";
+  let workerBId = "";
+  let attendanceAId = "";
+  let attendanceBId = "";
   let tokenA = "";
 
   beforeAll(async () => {
@@ -250,11 +254,78 @@ rlsSuite("RLS org isolation", () => {
       .single();
     if (entryBError || !entryB) throw entryBError;
     entryBId = entryB.id;
+
+    const { data: workerA, error: workerAError } = await admin
+      .from("workers")
+      .insert({
+        organization_id: orgAId,
+        name: `Worker A ${suffix}`,
+        specialty: "albanil",
+        daily_rate: 150,
+        created_by: userAId,
+      })
+      .select("id")
+      .single();
+    if (workerAError || !workerA) throw workerAError;
+    workerAId = workerA.id;
+
+    const { data: workerB, error: workerBError } = await admin
+      .from("workers")
+      .insert({
+        organization_id: orgBId,
+        name: `Worker B ${suffix}`,
+        specialty: "peon",
+        daily_rate: 120,
+        created_by: userBId,
+      })
+      .select("id")
+      .single();
+    if (workerBError || !workerB) throw workerBError;
+    workerBId = workerB.id;
+
+    const { data: attendanceA, error: attendanceAError } = await admin
+      .from("worker_attendance")
+      .insert({
+        organization_id: orgAId,
+        project_id: projectAId,
+        worker_id: workerAId,
+        work_date: "2025-06-03",
+        hours_worked: 8,
+        attendance_type: "full",
+        amount_paid: 150,
+        created_by: userAId,
+      })
+      .select("id")
+      .single();
+    if (attendanceAError || !attendanceA) throw attendanceAError;
+    attendanceAId = attendanceA.id;
+
+    const { data: attendanceB, error: attendanceBError } = await admin
+      .from("worker_attendance")
+      .insert({
+        organization_id: orgBId,
+        project_id: projectBId,
+        worker_id: workerBId,
+        work_date: "2025-06-03",
+        hours_worked: 8,
+        attendance_type: "full",
+        amount_paid: 120,
+        created_by: userBId,
+      })
+      .select("id")
+      .single();
+    if (attendanceBError || !attendanceB) throw attendanceBError;
+    attendanceBId = attendanceB.id;
   });
 
   afterAll(async () => {
     if (!hasEnv || !admin) return;
 
+    await admin
+      .from("worker_attendance")
+      .delete()
+      .in("id", [attendanceAId, attendanceBId]);
+    await admin.from("workers").delete().in("id", [workerAId, workerBId]);
     await admin.from("material_entries").delete().in("id", [entryAId, entryBId]);
     await admin.from("material_catalog").delete().in("id", [catalogAId, catalogBId]);
     await admin.from("stages").delete().in("id", [stageAId, stageBId]);
@@ -404,6 +475,78 @@ rlsSuite("RLS org isolation", () => {
     expect(error).not.toBeNull();
   });
 
+  it("user A sees only org A workers", async () => {
+    const token = await signIn(`rls-a-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client
+      .from("workers")
+      .select("id, organization_id")
+      .is("deleted_at", null);
+
+    expect(error).toBeNull();
+    expect(data?.every((w) => w.organization_id === orgAId)).toBe(true);
+    expect(data?.some((w) => w.id === workerBId)).toBe(false);
+  });
+
+  it("user B cannot read org A worker by id", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data } = await client
+      .from("workers")
+      .select("id")
+      .eq("id", workerAId)
+      .maybeSingle();
+
+    expect(data).toBeNull();
+  });
+
+  it("user A sees only org A worker attendance", async () => {
+    const token = await signIn(`rls-a-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client
+      .from("worker_attendance")
+      .select("id, organization_id");
+
+    expect(error).toBeNull();
+    expect(data?.every((a) => a.organization_id === orgAId)).toBe(true);
+    expect(data?.some((a) => a.id === attendanceBId)).toBe(false);
+  });
+
+  it("user B cannot read org A attendance by id", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data } = await client
+      .from("worker_attendance")
+      .select("id")
+      .eq("id", attendanceAId)
+      .maybeSingle();
+
+    expect(data).toBeNull();
+  });
+
+  it("user B cannot insert attendance into org A project", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client.from("worker_attendance").insert({
+      organization_id: orgAId,
+      project_id: projectAId,
+      worker_id: workerAId,
+      work_date: "2025-06-04",
+      hours_worked: 8,
+      attendance_type: "full",
+      amount_paid: 150,
+      created_by: userBId,
+    });
+
+    expect(data).toBeNull();
+    expect(error).not.toBeNull();
+  });
+
   it("user B cannot insert payment into org A project", async () => {
     const token = await signIn(`rls-b-${suffix}@constructa.test`);
     const client = anonClient(token);
@@ -454,6 +597,42 @@ describe("schedule and materials utils (unit)", () => {
     expect(calculateMaterialDeviation(100, 120)).toBe(20);
     expect(calculateMaterialDeviation(0, 10)).toBe(100);
     expect(calculateMaterialDeviation(50, 40)).toBe(-20);
+  });
+});
+
+describe("attendance and payroll utils (unit)", () => {
+  it("calculates hours from check-in and check-out", async () => {
+    const { calculateHoursWorked } = await import("@constructa/utils");
+
+    const hours = calculateHoursWorked(
+      "2025-06-10T07:00:00.000Z",
+      "2025-06-10T16:00:00.000Z",
+      "full",
+    );
+
+    expect(hours).toBe(9);
+  });
+
+  it("returns zero hours for absent attendance", async () => {
+    const { calculateHoursWorked } = await import("@constructa/utils");
+
+    expect(calculateHoursWorked(null, null, "absent")).toBe(0);
+  });
+
+  it("calculates attendance amount by type", async () => {
+    const { calculateAttendanceAmount } = await import("@constructa/utils");
+
+    expect(calculateAttendanceAmount(200, "full")).toBe(200);
+    expect(calculateAttendanceAmount(200, "half")).toBe(100);
+    expect(calculateAttendanceAmount(200, "absent")).toBe(0);
+    expect(calculateAttendanceAmount(200, "overtime")).toBe(300);
+  });
+
+  it("calculates overtime with extra hours beyond 8", async () => {
+    const { calculateAttendanceAmount } = await import("@constructa/utils");
+
+    const amount = calculateAttendanceAmount(160, "overtime", 10);
+    expect(amount).toBe(220);
   });
 });
 

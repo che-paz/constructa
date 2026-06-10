@@ -6,7 +6,7 @@ Planillas calculadas a mano en cuadernos, sin trazabilidad.
 
 ## Estado actual
 ```
-🔲 NO INICIADO | Sprint 04 | Depende: Módulo 01
+🟡 MVP BASE | Sprint 04 ✅ | Depende: Módulo 01
 ```
 
 ## Funcionalidades MVP
@@ -26,6 +26,8 @@ GET        /api/projects/[id]/payroll?week=
 `workers`, `worker_attendance`
 
 ## Criterio de finalización
-- [ ] Supervisor marca asistencia
-- [ ] Planilla semanal generada con un clic
-- [ ] Historial de pagos por trabajador
+- [x] Supervisor marca asistencia (manual web)
+- [x] Planilla semanal en tabla con selector de semana
+- [x] Historial de pagos/asistencia por trabajador
+- [ ] PDF exportable (post-MVP)
+- [ ] QR asistencia (post-MVP básico)

@@ -138,6 +138,55 @@ export const CreateMaterialBudgetSchema = z.object({
   expected_quantity: z.number().positive("La cantidad esperada debe ser mayor a cero"),
 });
 
+export const WorkerSpecialtySchema = z.enum([
+  "albanil",
+  "electricista",
+  "plomero",
+  "peon",
+  "carpintero",
+  "herrero",
+  "pintor",
+  "otro",
+]);
+
+export const AttendanceTypeSchema = z.enum([
+  "full",
+  "half",
+  "absent",
+  "overtime",
+]);
+
+export const CheckInMethodSchema = z.enum(["manual", "qr", "gps", "face"]);
+
+export const CreateWorkerSchema = z.object({
+  name: z.string().min(1, "Nombre requerido").max(200),
+  dpi: z.string().max(20).optional().nullable(),
+  phone: z.string().max(20).optional().nullable(),
+  specialty: z.string().max(50).optional().nullable(),
+  daily_rate: z
+    .number()
+    .nonnegative("El jornal debe ser cero o mayor")
+    .optional()
+    .nullable(),
+  notes: z.string().max(500).optional().nullable(),
+});
+
+export const UpdateWorkerSchema = CreateWorkerSchema.partial().extend({
+  is_active: z.boolean().optional(),
+});
+
+export const CreateAttendanceSchema = z.object({
+  project_id: z.string().uuid(),
+  worker_id: z.string().uuid(),
+  work_date: z.string().date("Fecha inválida"),
+  check_in: z.string().datetime({ offset: true }).optional().nullable(),
+  check_out: z.string().datetime({ offset: true }).optional().nullable(),
+  attendance_type: AttendanceTypeSchema.default("full"),
+  check_in_method: CheckInMethodSchema.default("manual"),
+  notes: z.string().max(500).optional().nullable(),
+  is_paid: z.boolean().optional(),
+});
+
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type SignupInput = z.infer<typeof SignupSchema>;
 export type CreateProjectInput = z.infer<typeof CreateProjectSchema>;
@@ -149,3 +198,6 @@ export type CreateMaterialCatalogInput = z.infer<typeof CreateMaterialCatalogSch
 export type UpdateMaterialCatalogInput = z.infer<typeof UpdateMaterialCatalogSchema>;
 export type CreateMaterialEntryInput = z.infer<typeof CreateMaterialEntrySchema>;
 export type CreateMaterialBudgetInput = z.infer<typeof CreateMaterialBudgetSchema>;
+export type CreateWorkerInput = z.infer<typeof CreateWorkerSchema>;
+export type UpdateWorkerInput = z.infer<typeof UpdateWorkerSchema>;
+export type CreateAttendanceInput = z.infer<typeof CreateAttendanceSchema>;

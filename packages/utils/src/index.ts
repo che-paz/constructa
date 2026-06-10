@@ -109,6 +109,112 @@ export function calculateMaterialDeviation(
   return ((actual - expected) / expected) * 100;
 }
 
+const ATTENDANCE_TYPE_LABELS: Record<string, string> = {
+  full: "Jornada completa",
+  half: "Media jornada",
+  absent: "Ausente",
+  overtime: "Horas extra",
+};
+
+export function attendanceTypeLabel(type: string): string {
+  return ATTENDANCE_TYPE_LABELS[type] ?? type;
+}
+
+const WORKER_SPECIALTY_LABELS: Record<string, string> = {
+  albanil: "Albañil",
+  electricista: "Electricista",
+  plomero: "Plomero",
+  peon: "Peón",
+  carpintero: "Carpintero",
+  herrero: "Herrero",
+  pintor: "Pintor",
+  otro: "Otro",
+};
+
+export function workerSpecialtyLabel(specialty: string | null): string {
+  if (!specialty) return "—";
+  return WORKER_SPECIALTY_LABELS[specialty] ?? specialty;
+}
+
+const DEFAULT_HOURS_BY_TYPE: Record<string, number> = {
+  full: 8,
+  half: 4,
+  absent: 0,
+  overtime: 10,
+};
+
+const TYPE_RATE_MULTIPLIERS: Record<string, number> = {
+  full: 1,
+  half: 0.5,
+  absent: 0,
+  overtime: 1.5,
+};
+
+/** Horas trabajadas a partir de check-in/out o tipo de jornada. */
+export function calculateHoursWorked(
+  checkIn: string | null | undefined,
+  checkOut: string | null | undefined,
+  attendanceType: string,
+): number {
+  if (attendanceType === "absent") return 0;
+
+  if (checkIn && checkOut) {
+    const diffMs =
+      new Date(checkOut).getTime() - new Date(checkIn).getTime();
+    if (diffMs > 0) {
+      return Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100;
+    }
+  }
+
+  return DEFAULT_HOURS_BY_TYPE[attendanceType] ?? 8;
+}
+
+/** Monto del día según jornal y tipo de jornada. */
+export function calculateAttendanceAmount(
+  dailyRate: number,
+  attendanceType: string,
+  hoursWorked?: number,
+): number {
+  if (attendanceType === "absent" || dailyRate <= 0) return 0;
+
+  if (attendanceType === "overtime" && hoursWorked != null && hoursWorked > 8) {
+    const hourly = dailyRate / 8;
+    const extraHours = hoursWorked - 8;
+    return Math.round((dailyRate + extraHours * hourly * 1.5) * 100) / 100;
+  }
+
+  const multiplier = TYPE_RATE_MULTIPLIERS[attendanceType] ?? 1;
+  return Math.round(dailyRate * multiplier * 100) / 100;
+}
+
+/** Lunes de la semana para una fecha (ISO date string). */
+export function getWeekStart(dateInput?: string): string {
+  const ref = dateInput ? new Date(`${dateInput}T12:00:00`) : new Date();
+  const day = ref.getDay();
+  const diff = ref.getDate() - day + (day === 0 ? -6 : 1);
+  ref.setDate(diff);
+  return ref.toISOString().slice(0, 10);
+}
+
+/** Domingo de la semana dado el lunes (ISO date). */
+export function getWeekEnd(weekStart: string): string {
+  const end = new Date(`${weekStart}T12:00:00`);
+  end.setDate(end.getDate() + 6);
+  return end.toISOString().slice(0, 10);
+}
+
+/** Fechas ISO (lun–dom) de una semana. */
+export function getWeekDates(weekStart: string): string[] {
+  const dates: string[] = [];
+  const start = new Date(`${weekStart}T12:00:00`);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
 export function calculatePaymentBalance(
   totalBudget: number | null | undefined,
   clientAdvance: number | null | undefined,

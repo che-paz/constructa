@@ -3,10 +3,13 @@ import type {
   MaterialAlert,
   MaterialCatalog,
   MaterialSummary,
+  PayrollSummary,
   Project,
   ProjectSummary,
   ScheduleSummary,
   Stage,
+  Worker,
+  WorkerAttendance,
 } from "@constructa/types";
 import { getAuthContext } from "@/lib/auth/get-organization";
 import { attachInvoiceUrls } from "@/lib/materials/invoice-url";
@@ -14,14 +17,16 @@ import { buildMaterialAlerts, buildMaterialSummary } from "@/lib/materials/summa
 import { computePaymentBalance } from "@/lib/payments/balance";
 import { attachReceiptUrls } from "@/lib/payments/receipt-url";
 import { enrichStageWithDelay, isStageCriticallyDelayed } from "@/lib/schedule/delay";
+import { buildPayrollSummary } from "@/lib/workers/payroll";
 import { createClient } from "@/lib/supabase/server";
 import { ProjectDashboard } from "@/components/modules/projects/project-dashboard";
 
 interface Props {
   params: { id: string };
+  searchParams: { week?: string };
 }
 
-export default async function ProjectDetailPage({ params }: Props) {
+export default async function ProjectDetailPage({ params, searchParams }: Props) {
   const auth = await getAuthContext();
   if (!auth) redirect("/onboarding");
 
@@ -43,6 +48,8 @@ export default async function ProjectDetailPage({ params }: Props) {
     { data: catalog },
     { data: materialEntries },
     { data: budgets },
+    { data: workers },
+    { data: attendance },
   ] = await Promise.all([
     supabase
       .from("stages")
@@ -74,6 +81,18 @@ export default async function ProjectDetailPage({ params }: Props) {
       .select("*, stage:stages(name), material:material_catalog(name, unit)")
       .eq("project_id", params.id)
       .eq("organization_id", auth.organization.id),
+    supabase
+      .from("workers")
+      .select("*")
+      .eq("organization_id", auth.organization.id)
+      .is("deleted_at", null)
+      .order("name", { ascending: true }),
+    supabase
+      .from("worker_attendance")
+      .select("*, worker:workers(*)")
+      .eq("project_id", params.id)
+      .eq("organization_id", auth.organization.id)
+      .order("work_date", { ascending: false }),
   ]);
 
   const stages = ((stagesRaw ?? []) as Stage[]).map((s) =>
@@ -111,6 +130,13 @@ export default async function ProjectDetailPage({ params }: Props) {
     payments ?? [],
   );
 
+  const payroll: PayrollSummary = buildPayrollSummary(
+    params.id,
+    (workers ?? []) as Worker[],
+    (attendance ?? []) as WorkerAttendance[],
+    searchParams.week,
+  );
+
   const [paymentsWithUrls, entriesWithUrls] = await Promise.all([
     attachReceiptUrls(payments ?? []),
     attachInvoiceUrls(materialEntries ?? []),
@@ -143,6 +169,9 @@ export default async function ProjectDetailPage({ params }: Props) {
       materialEntries={entriesWithUrls}
       materialSummary={materialSummary}
       materialAlerts={materialAlerts}
+      workers={(workers ?? []) as Worker[]}
+      attendance={(attendance ?? []) as WorkerAttendance[]}
+      payroll={payroll}
       clientPortalUrl={clientPortalUrl}
     />
   );

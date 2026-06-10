@@ -217,3 +217,85 @@ export interface MaterialAlert {
   severity: "medium" | "high";
   message: string;
 }
+
+export type WorkerSpecialty =
+  | "albanil"
+  | "electricista"
+  | "plomero"
+  | "peon"
+  | "carpintero"
+  | "herrero"
+  | "pintor"
+  | "otro";
+
+export interface Worker {
+  id: string;
+  organization_id: string;
+  name: string;
+  dpi: string | null;
+  phone: string | null;
+  specialty: string | null;
+  daily_rate: number | null;
+  is_active: boolean;
+  notes: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export type AttendanceType = "full" | "half" | "absent" | "overtime";
+
+export type CheckInMethod = "manual" | "qr" | "gps" | "face";
+
+export interface WorkerAttendance {
+  id: string;
+  organization_id: string;
+  project_id: string;
+  worker_id: string;
+  work_date: string;
+  check_in: string | null;
+  check_out: string | null;
+  hours_worked: number | null;
+  attendance_type: AttendanceType;
+  check_in_method: CheckInMethod;
+  amount_paid: number | null;
+  is_paid: boolean;
+  notes: string | null;
+  reported_via: string;
+  created_by: string;
+  created_at: string;
+  worker?: Worker;
+}
+
+export interface PayrollDayEntry {
+  work_date: string;
+  attendance_type: AttendanceType;
+  hours_worked: number;
+  amount: number;
+  is_paid: boolean;
+}
+
+export interface PayrollWorkerRow {
+  worker_id: string;
+  worker_name: string;
+  specialty: string | null;
+  daily_rate: number;
+  days: PayrollDayEntry[];
+  total_hours: number;
+  total_amount: number;
+  paid_amount: number;
+  unpaid_amount: number;
+}
+
+export interface PayrollSummary {
+  project_id: string;
+  week_start: string;
+  week_end: string;
+  rows: PayrollWorkerRow[];
+  total_hours: number;
+  total_amount: number;
+  paid_amount: number;
+  unpaid_amount: number;
+  workers_count: number;
+}
