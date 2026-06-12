@@ -16,6 +16,7 @@ import type {
   ScheduleSummary,
   Stage,
   Worker,
+  WorkerAdvance,
   WorkerAttendance,
 } from "@constructa/types";
 import { ExpensesSection } from "@/components/modules/expenses/expenses-section";
@@ -66,6 +67,7 @@ interface ProjectDashboardProps {
   materialAlerts: MaterialAlert[];
   workers: Worker[];
   attendance: WorkerAttendance[];
+  advances: WorkerAdvance[];
   payroll: PayrollSummary;
   financialSummary: ProjectFinancialSummary;
   expenses: Expense[];
@@ -85,6 +87,7 @@ export function ProjectDashboard({
   materialAlerts,
   workers,
   attendance,
+  advances,
   payroll,
   financialSummary,
   expenses,
@@ -307,6 +310,7 @@ export function ProjectDashboard({
             projectId={project.id}
             workers={workers}
             attendance={attendance}
+            advances={advances}
             payroll={payroll}
           />
         </div>

@@ -18,6 +18,7 @@ organizations (tenants)
         ├── photos (evidencia fotográfica)
         └── incidents (incidentes reportados)
   └── workers (empleados de la empresa)
+  └── worker_advances (adelantos al personal)
   └── clients (clientes de proyectos)
   └── suppliers (proveedores)
   └── ai_conversations (historial IA)
@@ -220,14 +221,32 @@ CREATE TABLE workers (
   name            TEXT NOT NULL,
   dpi             TEXT,
   phone           TEXT,
-  specialty       TEXT,                              -- 'albañil','electricista','plomero','peón'
-  daily_rate      NUMERIC(8,2),                      -- jornal diario en GTQ
+  specialty       TEXT,                              -- enum común o texto custom
+  payment_type    TEXT NOT NULL DEFAULT 'daily',     -- 'daily' | 'contract'
+  daily_rate      NUMERIC(8,2),                      -- jornal diario GTQ (solo si payment_type = daily)
   is_active       BOOLEAN DEFAULT true,
   notes           TEXT,
   created_by      UUID NOT NULL REFERENCES auth.users(id),
   created_at      TIMESTAMPTZ DEFAULT now(),
   updated_at      TIMESTAMPTZ DEFAULT now(),
   deleted_at      TIMESTAMPTZ
+);
+```
+
+### `worker_advances`
+```sql
+CREATE TABLE worker_advances (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  project_id      UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  worker_id       UUID NOT NULL REFERENCES workers(id) ON DELETE CASCADE,
+  amount          NUMERIC(8,2) NOT NULL CHECK (amount > 0),
+  advance_date    DATE NOT NULL,
+  notes           TEXT,
+  week_start      DATE NOT NULL,                     -- lunes de la semana a descontar
+  is_deducted     BOOLEAN NOT NULL DEFAULT false,
+  created_by      UUID NOT NULL REFERENCES auth.users(id),
+  created_at      TIMESTAMPTZ DEFAULT now()
 );
 ```
 
@@ -424,6 +443,8 @@ CREATE TABLE ai_usage_log (
 CREATE INDEX idx_projects_org ON projects(organization_id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_material_entries_project ON material_entries(project_id, created_at DESC);
 CREATE INDEX idx_attendance_project_date ON worker_attendance(project_id, work_date DESC);
+CREATE INDEX idx_worker_advances_project_week ON worker_advances(project_id, week_start);
+CREATE INDEX idx_worker_advances_worker_date ON worker_advances(worker_id, advance_date DESC);
 CREATE INDEX idx_payments_project ON payments(project_id, payment_date DESC);
 CREATE INDEX idx_expenses_project ON expenses(project_id, expense_date DESC);
 CREATE INDEX idx_photos_project ON photos(project_id, created_at DESC);

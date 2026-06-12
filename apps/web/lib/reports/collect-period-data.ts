@@ -54,6 +54,7 @@ export async function collectReportData(
     { data: expenses },
     { data: attendance },
     { data: workers },
+    { data: advances },
     { data: allMaterials },
     { data: allAttendance },
   ] = await Promise.all([
@@ -103,6 +104,11 @@ export async function collectReportData(
       .select("*")
       .eq("organization_id", organizationId)
       .is("deleted_at", null),
+    supabase
+      .from("worker_advances")
+      .select("*")
+      .eq("project_id", projectId)
+      .eq("organization_id", organizationId),
     supabase
       .from("material_entries")
       .select("project_id, total_cost, created_at")
@@ -174,6 +180,7 @@ export async function collectReportData(
     workers ?? [],
     periodAttendance,
     period.start,
+    advances ?? [],
   );
 
   const paymentsInPeriod = (payments ?? [])

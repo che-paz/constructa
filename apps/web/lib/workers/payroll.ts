@@ -3,6 +3,7 @@ import type {
   PayrollSummary,
   PayrollWorkerRow,
   Worker,
+  WorkerAdvance,
   WorkerAttendance,
 } from "@constructa/types";
 import { calculateAttendanceAmount, getWeekDates, getWeekEnd, getWeekStart } from "@constructa/utils";
@@ -12,6 +13,7 @@ export function buildPayrollSummary(
   workers: Worker[],
   attendance: WorkerAttendance[],
   weekParam?: string,
+  advances: WorkerAdvance[] = [],
 ): PayrollSummary {
   const weekStart = getWeekStart(weekParam);
   const weekEnd = getWeekEnd(weekStart);
@@ -19,6 +21,10 @@ export function buildPayrollSummary(
 
   const weekAttendance = attendance.filter(
     (a) => a.work_date >= weekStart && a.work_date <= weekEnd,
+  );
+
+  const weekAdvances = advances.filter(
+    (a) => a.week_start === weekStart && !a.is_deducted,
   );
 
   const activeWorkers = workers.filter(
@@ -66,23 +72,36 @@ export function buildPayrollSummary(
     const paidAmount = daysWithAttendance
       .filter((d) => d.is_paid)
       .reduce((s, d) => s + d.amount, 0);
+    const advancesAmount = weekAdvances
+      .filter((a) => a.worker_id === worker.id)
+      .reduce((s, a) => s + Number(a.amount), 0);
+    const unpaidAmount =
+      Math.round((totalAmount - paidAmount) * 100) / 100;
+    const netAmount =
+      Math.round((totalAmount - advancesAmount - paidAmount) * 100) / 100;
 
     return {
       worker_id: worker.id,
       worker_name: worker.name,
       specialty: worker.specialty,
+      payment_type: worker.payment_type ?? "daily",
       daily_rate: dailyRate,
       days,
       total_hours: Math.round(totalHours * 100) / 100,
       total_amount: Math.round(totalAmount * 100) / 100,
+      advances_amount: Math.round(advancesAmount * 100) / 100,
       paid_amount: Math.round(paidAmount * 100) / 100,
-      unpaid_amount: Math.round((totalAmount - paidAmount) * 100) / 100,
+      unpaid_amount: unpaidAmount,
+      net_amount: netAmount,
     };
   });
 
   const totalHours = rows.reduce((s, r) => s + r.total_hours, 0);
   const totalAmount = rows.reduce((s, r) => s + r.total_amount, 0);
+  const advancesAmount = rows.reduce((s, r) => s + r.advances_amount, 0);
   const paidAmount = rows.reduce((s, r) => s + r.paid_amount, 0);
+  const unpaidAmount = rows.reduce((s, r) => s + r.unpaid_amount, 0);
+  const netAmount = rows.reduce((s, r) => s + r.net_amount, 0);
 
   return {
     project_id: projectId,
@@ -91,8 +110,10 @@ export function buildPayrollSummary(
     rows,
     total_hours: Math.round(totalHours * 100) / 100,
     total_amount: Math.round(totalAmount * 100) / 100,
+    advances_amount: Math.round(advancesAmount * 100) / 100,
     paid_amount: Math.round(paidAmount * 100) / 100,
-    unpaid_amount: Math.round((totalAmount - paidAmount) * 100) / 100,
+    unpaid_amount: Math.round(unpaidAmount * 100) / 100,
+    net_amount: Math.round(netAmount * 100) / 100,
     workers_count: rows.length,
   };
 }

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { CreateAttendanceSchema } from "@constructa/schemas";
 import type { WorkerAttendance } from "@constructa/types";
 import { getAuthContext } from "@/lib/auth/get-organization";
-import { computeAttendanceFields } from "@/lib/workers/attendance";
+import { computeAttendanceFields, validateContractAttendance } from "@/lib/workers/attendance";
 import { getProjectForOrg } from "@/lib/projects/get-project-for-org";
 import { createClient } from "@/lib/supabase/server";
 
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
 
     const { data: worker, error: workerError } = await supabase
       .from("workers")
-      .select("id, daily_rate")
+      .select("id, daily_rate, payment_type")
       .eq("id", parsed.data.worker_id)
       .eq("organization_id", auth.organization.id)
       .is("deleted_at", null)
@@ -101,11 +101,27 @@ export async function POST(request: Request) {
       );
     }
 
+    const paymentType = worker.payment_type ?? "daily";
+
+    if (paymentType === "contract") {
+      const contractError = validateContractAttendance({
+        attendance_type: parsed.data.attendance_type,
+        amount_paid: parsed.data.amount_paid,
+        notes: parsed.data.notes,
+      });
+
+      if (contractError) {
+        return NextResponse.json({ error: contractError }, { status: 400 });
+      }
+    }
+
     const { hours_worked, amount_paid } = computeAttendanceFields({
       check_in: parsed.data.check_in,
       check_out: parsed.data.check_out,
       attendance_type: parsed.data.attendance_type,
+      payment_type: paymentType,
       daily_rate: worker.daily_rate,
+      amount_paid: parsed.data.amount_paid,
     });
 
     const { data, error } = await supabase

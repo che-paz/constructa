@@ -53,6 +53,8 @@ rlsSuite("RLS org isolation", () => {
   let conversationBId = "";
   let reportAId = "";
   let reportBId = "";
+  let advanceAId = "";
+  let advanceBId = "";
   let tokenA = "";
 
   beforeAll(async () => {
@@ -323,6 +325,38 @@ rlsSuite("RLS org isolation", () => {
     if (attendanceBError || !attendanceB) throw attendanceBError;
     attendanceBId = attendanceB.id;
 
+    const { data: advanceA, error: advanceAError } = await admin
+      .from("worker_advances")
+      .insert({
+        organization_id: orgAId,
+        project_id: projectAId,
+        worker_id: workerAId,
+        amount: 100,
+        advance_date: "2025-06-04",
+        week_start: "2025-06-02",
+        created_by: userAId,
+      })
+      .select("id")
+      .single();
+    if (advanceAError || !advanceA) throw advanceAError;
+    advanceAId = advanceA.id;
+
+    const { data: advanceB, error: advanceBError } = await admin
+      .from("worker_advances")
+      .insert({
+        organization_id: orgBId,
+        project_id: projectBId,
+        worker_id: workerBId,
+        amount: 80,
+        advance_date: "2025-06-04",
+        week_start: "2025-06-02",
+        created_by: userBId,
+      })
+      .select("id")
+      .single();
+    if (advanceBError || !advanceB) throw advanceBError;
+    advanceBId = advanceB.id;
+
     const { data: expenseA, error: expenseAError } = await admin
       .from("expenses")
       .insert({
@@ -423,6 +457,10 @@ rlsSuite("RLS org isolation", () => {
       .from("ai_conversations")
       .delete()
       .in("id", [conversationAId, conversationBId]);
+    await admin
+      .from("worker_advances")
+      .delete()
+      .in("id", [advanceAId, advanceBId]);
     await admin
       .from("worker_attendance")
       .delete()
@@ -649,6 +687,50 @@ rlsSuite("RLS org isolation", () => {
     expect(error).not.toBeNull();
   });
 
+  it("user A sees only org A worker advances", async () => {
+    const token = await signIn(`rls-a-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client
+      .from("worker_advances")
+      .select("id, organization_id");
+
+    expect(error).toBeNull();
+    expect(data?.every((a) => a.organization_id === orgAId)).toBe(true);
+    expect(data?.some((a) => a.id === advanceBId)).toBe(false);
+  });
+
+  it("user B cannot read org A worker advance by id", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data } = await client
+      .from("worker_advances")
+      .select("id")
+      .eq("id", advanceAId)
+      .maybeSingle();
+
+    expect(data).toBeNull();
+  });
+
+  it("user B cannot insert advance into org A project", async () => {
+    const token = await signIn(`rls-b-${suffix}@constructa.test`);
+    const client = anonClient(token);
+
+    const { data, error } = await client.from("worker_advances").insert({
+      organization_id: orgAId,
+      project_id: projectAId,
+      worker_id: workerAId,
+      amount: 50,
+      advance_date: "2025-06-05",
+      week_start: "2025-06-02",
+      created_by: userBId,
+    });
+
+    expect(data).toBeNull();
+    expect(error).not.toBeNull();
+  });
+
   it("user A sees only org A expenses", async () => {
     const token = await signIn(`rls-a-${suffix}@constructa.test`);
     const client = anonClient(token);
@@ -832,6 +914,116 @@ describe("attendance and payroll utils (unit)", () => {
 
     const amount = calculateAttendanceAmount(160, "overtime", 10);
     expect(amount).toBe(220);
+  });
+
+  it("uses manual amount for contract workers", async () => {
+    const { computeAttendanceFields } = await import(
+      "@/lib/workers/attendance"
+    );
+
+    const result = computeAttendanceFields({
+      attendance_type: "full",
+      payment_type: "contract",
+      amount_paid: 500,
+    });
+
+    expect(result.amount_paid).toBe(500);
+  });
+
+  it("validates contract attendance requires amount and notes", async () => {
+    const { validateContractAttendance } = await import(
+      "@/lib/workers/attendance"
+    );
+
+    expect(
+      validateContractAttendance({
+        attendance_type: "full",
+        amount_paid: null,
+        notes: "pegar piso",
+      }),
+    ).toContain("monto");
+
+    expect(
+      validateContractAttendance({
+        attendance_type: "full",
+        amount_paid: 500,
+        notes: "",
+      }),
+    ).toContain("trabajo");
+
+    expect(
+      validateContractAttendance({
+        attendance_type: "full",
+        amount_paid: 500,
+        notes: "pegar piso",
+      }),
+    ).toBeNull();
+  });
+
+  it("deducts advances from payroll net amount", async () => {
+    const { buildPayrollSummary } = await import("@/lib/workers/payroll");
+
+    const summary = buildPayrollSummary(
+      "project-1",
+      [
+        {
+          id: "w1",
+          organization_id: "org",
+          name: "Luis",
+          dpi: null,
+          phone: null,
+          specialty: "albanil",
+          payment_type: "contract",
+          daily_rate: null,
+          is_active: true,
+          notes: null,
+          created_by: "u1",
+          created_at: "",
+          updated_at: "",
+          deleted_at: null,
+        },
+      ],
+      [
+        {
+          id: "a1",
+          organization_id: "org",
+          project_id: "project-1",
+          worker_id: "w1",
+          work_date: "2025-06-03",
+          check_in: null,
+          check_out: null,
+          hours_worked: 0,
+          attendance_type: "full",
+          check_in_method: "manual",
+          amount_paid: 500,
+          is_paid: false,
+          notes: "pegar piso",
+          reported_via: "web",
+          created_by: "u1",
+          created_at: "",
+        },
+      ],
+      "2025-06-02",
+      [
+        {
+          id: "adv1",
+          organization_id: "org",
+          project_id: "project-1",
+          worker_id: "w1",
+          amount: 100,
+          advance_date: "2025-06-04",
+          notes: null,
+          week_start: "2025-06-02",
+          is_deducted: false,
+          created_by: "u1",
+          created_at: "",
+        },
+      ],
+    );
+
+    expect(summary.total_amount).toBe(500);
+    expect(summary.advances_amount).toBe(100);
+    expect(summary.net_amount).toBe(400);
   });
 });
 

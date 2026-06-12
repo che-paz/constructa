@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreateWorkerSchema } from "@constructa/schemas";
+import type { WorkerPaymentType } from "@constructa/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +24,7 @@ const COMMON_SPECIALTIES = [
   { value: "carpintero", label: "Carpintero" },
   { value: "herrero", label: "Herrero" },
   { value: "pintor", label: "Pintor" },
-  { value: "otro", label: "Otro" },
+  { value: "otro", label: "Otra especialidad…" },
 ];
 
 export function WorkerForm() {
@@ -34,6 +35,8 @@ export function WorkerForm() {
   const [dpi, setDpi] = useState("");
   const [phone, setPhone] = useState("");
   const [specialty, setSpecialty] = useState("albanil");
+  const [customSpecialty, setCustomSpecialty] = useState("");
+  const [paymentType, setPaymentType] = useState<WorkerPaymentType>("daily");
   const [dailyRate, setDailyRate] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -41,12 +44,20 @@ export function WorkerForm() {
     e.preventDefault();
     setError(null);
 
+    if (specialty === "otro" && !customSpecialty.trim()) {
+      setError("Indica la especialidad del trabajador");
+      return;
+    }
+
     const payload = {
       name,
       dpi: dpi || null,
       phone: phone || null,
-      specialty: specialty || null,
-      daily_rate: dailyRate ? Number(dailyRate) : null,
+      specialty:
+        specialty === "otro" ? customSpecialty.trim() : specialty || null,
+      payment_type: paymentType,
+      daily_rate:
+        paymentType === "daily" && dailyRate ? Number(dailyRate) : null,
       notes: notes || null,
     };
 
@@ -79,6 +90,9 @@ export function WorkerForm() {
     setName("");
     setDpi("");
     setPhone("");
+    setSpecialty("albanil");
+    setCustomSpecialty("");
+    setPaymentType("daily");
     setDailyRate("");
     setNotes("");
     setLoading(false);
@@ -125,6 +139,22 @@ export function WorkerForm() {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="paymentType">Forma de pago *</Label>
+          <Select
+            value={paymentType}
+            onValueChange={(v) => setPaymentType(v as WorkerPaymentType)}
+          >
+            <SelectTrigger id="paymentType">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Jornal diario</SelectItem>
+              <SelectItem value="contract">Por contrato / tarea</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="workerSpecialty">Especialidad</Label>
           <Select value={specialty} onValueChange={setSpecialty}>
             <SelectTrigger id="workerSpecialty">
@@ -140,17 +170,41 @@ export function WorkerForm() {
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="dailyRate">Jornal diario (GTQ)</Label>
-          <Input
-            id="dailyRate"
-            type="number"
-            min="0"
-            step="0.01"
-            value={dailyRate}
-            onChange={(e) => setDailyRate(e.target.value)}
-          />
-        </div>
+        {specialty === "otro" && (
+          <div className="space-y-2">
+            <Label htmlFor="customSpecialty">Especialidad (texto libre) *</Label>
+            <Input
+              id="customSpecialty"
+              value={customSpecialty}
+              onChange={(e) => setCustomSpecialty(e.target.value)}
+              placeholder="Ej. Instalador de piso"
+            />
+          </div>
+        )}
+
+        {paymentType === "daily" && (
+          <div className="space-y-2">
+            <Label htmlFor="dailyRate">Jornal diario (GTQ) *</Label>
+            <Input
+              id="dailyRate"
+              type="number"
+              min="0"
+              step="0.01"
+              value={dailyRate}
+              onChange={(e) => setDailyRate(e.target.value)}
+              required
+            />
+          </div>
+        )}
+
+        {paymentType === "contract" && (
+          <div className="space-y-2 sm:col-span-2">
+            <p className="text-sm text-muted-foreground">
+              El monto se registra al cerrar cada día de trabajo, con una nota
+              del trabajo realizado (ej. pegar piso).
+            </p>
+          </div>
+        )}
 
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="workerNotes">Notas</Label>

@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Worker } from "@constructa/types";
-import { formatGtq, workerSpecialtyLabel } from "@constructa/utils";
+import {
+  formatGtq,
+  workerPaymentTypeLabel,
+  workerSpecialtyLabel,
+} from "@constructa/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,98 +94,109 @@ export function WorkerList({
             <tr className="border-b bg-muted/50 text-left">
               <th className="px-3 py-2 font-medium">Nombre</th>
               <th className="px-3 py-2 font-medium">Especialidad</th>
-              <th className="px-3 py-2 font-medium">Jornal</th>
+              <th className="px-3 py-2 font-medium">Pago</th>
+              <th className="px-3 py-2 font-medium">Tarifa</th>
               <th className="px-3 py-2 font-medium">Estado</th>
               <th className="px-3 py-2 font-medium">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {workers.map((worker) => (
-              <tr
-                key={worker.id}
-                className={`border-b last:border-0 ${
-                  selectedWorkerId === worker.id ? "bg-muted/30" : ""
-                }`}
-              >
-                <td className="px-3 py-2">
-                  <button
-                    type="button"
-                    className="text-left font-medium hover:underline"
-                    onClick={() =>
-                      onSelectWorker(
-                        selectedWorkerId === worker.id ? null : worker.id,
-                      )
-                    }
-                  >
-                    {worker.name}
-                  </button>
-                  {worker.phone && (
-                    <p className="text-xs text-muted-foreground">
-                      {worker.phone}
-                    </p>
-                  )}
-                </td>
-                <td className="px-3 py-2">
-                  {workerSpecialtyLabel(worker.specialty)}
-                </td>
-                <td className="px-3 py-2">
-                  {editingId === worker.id ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        className="h-8 w-24"
-                        value={editRate}
-                        onChange={(e) => setEditRate(e.target.value)}
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        disabled={loading}
-                        onClick={() => handleSaveRate(worker.id)}
-                      >
-                        OK
-                      </Button>
-                    </div>
-                  ) : (
+            {workers.map((worker) => {
+              const isContract =
+                (worker.payment_type ?? "daily") === "contract";
+
+              return (
+                <tr
+                  key={worker.id}
+                  className={`border-b last:border-0 ${
+                    selectedWorkerId === worker.id ? "bg-muted/30" : ""
+                  }`}
+                >
+                  <td className="px-3 py-2">
                     <button
                       type="button"
-                      className="hover:underline"
-                      onClick={() => {
-                        setEditingId(worker.id);
-                        setEditRate(
-                          worker.daily_rate != null
-                            ? String(worker.daily_rate)
-                            : "",
-                        );
-                      }}
+                      className="text-left font-medium hover:underline"
+                      onClick={() =>
+                        onSelectWorker(
+                          selectedWorkerId === worker.id ? null : worker.id,
+                        )
+                      }
                     >
-                      {worker.daily_rate != null
-                        ? formatGtq(Number(worker.daily_rate))
-                        : "Sin definir"}
+                      {worker.name}
                     </button>
-                  )}
-                </td>
-                <td className="px-3 py-2">
-                  <Badge variant={worker.is_active ? "default" : "secondary"}>
-                    {worker.is_active ? "Activo" : "Inactivo"}
-                  </Badge>
-                </td>
-                <td className="px-3 py-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={loading}
-                    onClick={() => handleToggleActive(worker)}
-                  >
-                    {worker.is_active ? "Desactivar" : "Activar"}
-                  </Button>
-                </td>
-              </tr>
-            ))}
+                    {worker.phone && (
+                      <p className="text-xs text-muted-foreground">
+                        {worker.phone}
+                      </p>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {workerSpecialtyLabel(worker.specialty)}
+                  </td>
+                  <td className="px-3 py-2">
+                    {workerPaymentTypeLabel(worker.payment_type)}
+                  </td>
+                  <td className="px-3 py-2">
+                    {isContract ? (
+                      <span className="text-muted-foreground">Por día</span>
+                    ) : editingId === worker.id ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="h-8 w-24"
+                          value={editRate}
+                          onChange={(e) => setEditRate(e.target.value)}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          disabled={loading}
+                          onClick={() => handleSaveRate(worker.id)}
+                        >
+                          OK
+                        </Button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="hover:underline"
+                        onClick={() => {
+                          setEditingId(worker.id);
+                          setEditRate(
+                            worker.daily_rate != null
+                              ? String(worker.daily_rate)
+                              : "",
+                          );
+                        }}
+                      >
+                        {worker.daily_rate != null
+                          ? formatGtq(Number(worker.daily_rate))
+                          : "Sin definir"}
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <Badge variant={worker.is_active ? "default" : "secondary"}>
+                      {worker.is_active ? "Activo" : "Inactivo"}
+                    </Badge>
+                  </td>
+                  <td className="px-3 py-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={loading}
+                      onClick={() => handleToggleActive(worker)}
+                    >
+                      {worker.is_active ? "Desactivar" : "Activar"}
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreateAttendanceSchema } from "@constructa/schemas";
 import type { AttendanceType, Worker } from "@constructa/types";
+import { workerPaymentTypeLabel } from "@constructa/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,10 +34,18 @@ export function AttendanceForm({ projectId, workers }: AttendanceFormProps) {
   const [checkOutTime, setCheckOutTime] = useState("16:00");
   const [attendanceType, setAttendanceType] =
     useState<AttendanceType>("full");
+  const [contractAmount, setContractAmount] = useState("");
   const [notes, setNotes] = useState("");
   const [markPaid, setMarkPaid] = useState(false);
 
   const activeWorkers = workers.filter((w) => w.is_active);
+
+  const selectedWorker = useMemo(
+    () => activeWorkers.find((w) => w.id === workerId) ?? null,
+    [activeWorkers, workerId],
+  );
+
+  const isContract = (selectedWorker?.payment_type ?? "daily") === "contract";
 
   function buildTimestamp(date: string, time: string): string | null {
     if (attendanceType === "absent") return null;
@@ -52,6 +61,17 @@ export function AttendanceForm({ projectId, workers }: AttendanceFormProps) {
       return;
     }
 
+    if (isContract && attendanceType !== "absent") {
+      if (!contractAmount || Number(contractAmount) <= 0) {
+        setError("Ingresa el monto del día para trabajadores por contrato");
+        return;
+      }
+      if (!notes.trim()) {
+        setError("Describe el trabajo realizado (contrato/tarea)");
+        return;
+      }
+    }
+
     const checkIn = buildTimestamp(workDate, checkInTime);
     const checkOut = buildTimestamp(workDate, checkOutTime);
 
@@ -59,10 +79,14 @@ export function AttendanceForm({ projectId, workers }: AttendanceFormProps) {
       project_id: projectId,
       worker_id: workerId,
       work_date: workDate,
-      check_in: checkIn,
-      check_out: checkOut,
-      attendance_type: attendanceType,
+      check_in: isContract ? null : checkIn,
+      check_out: isContract ? null : checkOut,
+      attendance_type: isContract ? "full" : attendanceType,
       check_in_method: "manual" as const,
+      amount_paid:
+        isContract && attendanceType !== "absent"
+          ? Number(contractAmount)
+          : undefined,
       notes: notes || null,
       is_paid: markPaid,
     };
@@ -93,6 +117,7 @@ export function AttendanceForm({ projectId, workers }: AttendanceFormProps) {
       return;
     }
 
+    setContractAmount("");
     setNotes("");
     setMarkPaid(false);
     setLoading(false);
@@ -125,7 +150,7 @@ export function AttendanceForm({ projectId, workers }: AttendanceFormProps) {
             <SelectContent>
               {activeWorkers.map((w) => (
                 <SelectItem key={w.id} value={w.id}>
-                  {w.name}
+                  {w.name} ({workerPaymentTypeLabel(w.payment_type)})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -143,57 +168,91 @@ export function AttendanceForm({ projectId, workers }: AttendanceFormProps) {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="attendanceType">Tipo de jornada *</Label>
-          <Select
-            value={attendanceType}
-            onValueChange={(v) => setAttendanceType(v as AttendanceType)}
-          >
-            <SelectTrigger id="attendanceType">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="full">Jornada completa</SelectItem>
-              <SelectItem value="half">Media jornada</SelectItem>
-              <SelectItem value="overtime">Horas extra</SelectItem>
-              <SelectItem value="absent">Ausente</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {attendanceType !== "absent" && (
+        {!isContract && (
           <>
             <div className="space-y-2">
-              <Label htmlFor="checkIn">Entrada</Label>
+              <Label htmlFor="attendanceType">Tipo de jornada *</Label>
+              <Select
+                value={attendanceType}
+                onValueChange={(v) => setAttendanceType(v as AttendanceType)}
+              >
+                <SelectTrigger id="attendanceType">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="full">Jornada completa</SelectItem>
+                  <SelectItem value="half">Media jornada</SelectItem>
+                  <SelectItem value="overtime">Horas extra</SelectItem>
+                  <SelectItem value="absent">Ausente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {attendanceType !== "absent" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="checkIn">Entrada</Label>
+                  <Input
+                    id="checkIn"
+                    type="time"
+                    value={checkInTime}
+                    onChange={(e) => setCheckInTime(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="checkOut">Salida</Label>
+                  <Input
+                    id="checkOut"
+                    type="time"
+                    value={checkOutTime}
+                    onChange={(e) => setCheckOutTime(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        {isContract && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="contractAmount">Monto del día (GTQ) *</Label>
               <Input
-                id="checkIn"
-                type="time"
-                value={checkInTime}
-                onChange={(e) => setCheckInTime(e.target.value)}
+                id="contractAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                value={contractAmount}
+                onChange={(e) => setContractAmount(e.target.value)}
+                placeholder="500"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="checkOut">Salida</Label>
-              <Input
-                id="checkOut"
-                type="time"
-                value={checkOutTime}
-                onChange={(e) => setCheckOutTime(e.target.value)}
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="attendanceNotes">Trabajo realizado *</Label>
+              <Textarea
+                id="attendanceNotes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                placeholder="Ej. pegar piso en sala principal"
               />
             </div>
           </>
         )}
 
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="attendanceNotes">Notas</Label>
-          <Textarea
-            id="attendanceNotes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={2}
-          />
-        </div>
+        {!isContract && (
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="attendanceNotes">Notas</Label>
+            <Textarea
+              id="attendanceNotes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+            />
+          </div>
+        )}
 
         <div className="flex items-center gap-2 sm:col-span-2">
           <input
@@ -204,7 +263,7 @@ export function AttendanceForm({ projectId, workers }: AttendanceFormProps) {
             className="h-4 w-4 rounded border"
           />
           <Label htmlFor="markPaid" className="font-normal">
-            Marcar como pagado
+            Pagado el mismo día
           </Label>
         </div>
       </div>

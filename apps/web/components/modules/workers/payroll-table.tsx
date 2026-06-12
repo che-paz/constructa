@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PayrollSummary } from "@constructa/types";
 import {
   attendanceTypeLabel,
@@ -23,17 +23,27 @@ import {
 interface PayrollTableProps {
   projectId: string;
   initialPayroll: PayrollSummary;
+  onWeekChange?: (weekStart: string) => void;
 }
 
 const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
-export function PayrollTable({ projectId, initialPayroll }: PayrollTableProps) {
+export function PayrollTable({
+  projectId,
+  initialPayroll,
+  onWeekChange,
+}: PayrollTableProps) {
   const [payroll, setPayroll] = useState(initialPayroll);
   const [loading, setLoading] = useState(false);
   const currentWeekStart = getWeekStart();
 
+  useEffect(() => {
+    setPayroll(initialPayroll);
+  }, [initialPayroll]);
+
   async function handleWeekChange(weekStart: string) {
     setLoading(true);
+    onWeekChange?.(weekStart);
     try {
       const res = await fetch(
         `/api/projects/${projectId}/payroll?week=${weekStart}`,
@@ -52,6 +62,13 @@ export function PayrollTable({ projectId, initialPayroll }: PayrollTableProps) {
     void handleWeekChange(d.toISOString().slice(0, 10));
   }
 
+  function workerRateLabel(row: PayrollSummary["rows"][number]) {
+    if (row.payment_type === "contract") {
+      return `${workerSpecialtyLabel(row.specialty)} · Por contrato`;
+    }
+    return `${workerSpecialtyLabel(row.specialty)} · ${formatGtq(row.daily_rate)}/día`;
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -59,15 +76,7 @@ export function PayrollTable({ projectId, initialPayroll }: PayrollTableProps) {
           <div>
             <CardTitle className="text-base">Planilla semanal</CardTitle>
             <CardDescription>
-              {new Date(`${payroll.week_start}T12:00:00`).toLocaleDateString(
-                "es-GT",
-                { day: "numeric", month: "short" },
-              )}{" "}
-              —{" "}
-              {new Date(`${payroll.week_end}T12:00:00`).toLocaleDateString(
-                "es-GT",
-                { day: "numeric", month: "short", year: "numeric" },
-              )}
+              Cierre de semana con adelantos y pagos del día
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-end gap-2">
@@ -110,25 +119,33 @@ export function PayrollTable({ projectId, initialPayroll }: PayrollTableProps) {
           <p className="text-sm text-muted-foreground">Cargando planilla…</p>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <div className="rounded-md border px-3 py-2">
                 <p className="text-xs text-muted-foreground">Trabajadores</p>
                 <p className="text-lg font-semibold">{payroll.workers_count}</p>
               </div>
               <div className="rounded-md border px-3 py-2">
-                <p className="text-xs text-muted-foreground">Horas totales</p>
-                <p className="text-lg font-semibold">{payroll.total_hours}h</p>
-              </div>
-              <div className="rounded-md border px-3 py-2">
-                <p className="text-xs text-muted-foreground">Monto semanal</p>
+                <p className="text-xs text-muted-foreground">Bruto semanal</p>
                 <p className="text-lg font-semibold">
                   {formatGtq(payroll.total_amount)}
                 </p>
               </div>
               <div className="rounded-md border px-3 py-2">
-                <p className="text-xs text-muted-foreground">Pendiente de pago</p>
+                <p className="text-xs text-muted-foreground">Adelantos</p>
                 <p className="text-lg font-semibold text-amber-700">
-                  {formatGtq(payroll.unpaid_amount)}
+                  {formatGtq(payroll.advances_amount)}
+                </p>
+              </div>
+              <div className="rounded-md border px-3 py-2">
+                <p className="text-xs text-muted-foreground">Pagado en semana</p>
+                <p className="text-lg font-semibold text-green-700">
+                  {formatGtq(payroll.paid_amount)}
+                </p>
+              </div>
+              <div className="rounded-md border px-3 py-2 sm:col-span-2 lg:col-span-1">
+                <p className="text-xs text-muted-foreground">Neto al cierre</p>
+                <p className="text-lg font-semibold">
+                  {formatGtq(payroll.net_amount)}
                 </p>
               </div>
             </div>
@@ -139,7 +156,7 @@ export function PayrollTable({ projectId, initialPayroll }: PayrollTableProps) {
               </p>
             ) : (
               <div className="overflow-x-auto rounded-md border">
-                <table className="w-full min-w-[720px] text-sm">
+                <table className="w-full min-w-[900px] text-sm">
                   <thead>
                     <tr className="border-b bg-muted/50 text-left">
                       <th className="px-3 py-2 font-medium">Trabajador</th>
@@ -156,8 +173,11 @@ export function PayrollTable({ projectId, initialPayroll }: PayrollTableProps) {
                         </th>
                       ))}
                       <th className="px-3 py-2 text-right font-medium">Horas</th>
-                      <th className="px-3 py-2 text-right font-medium">Monto</th>
-                      <th className="px-3 py-2 text-right font-medium">Pagado</th>
+                      <th className="px-3 py-2 text-right font-medium">Bruto</th>
+                      <th className="px-3 py-2 text-right font-medium">
+                        Adelantos
+                      </th>
+                      <th className="px-3 py-2 text-right font-medium">Neto</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -166,8 +186,7 @@ export function PayrollTable({ projectId, initialPayroll }: PayrollTableProps) {
                         <td className="px-3 py-2">
                           <p className="font-medium">{row.worker_name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {workerSpecialtyLabel(row.specialty)} ·{" "}
-                            {formatGtq(row.daily_rate)}/día
+                            {workerRateLabel(row)}
                           </p>
                         </td>
                         {row.days.map((day) => (
@@ -180,14 +199,26 @@ export function PayrollTable({ projectId, initialPayroll }: PayrollTableProps) {
                                 <Badge
                                   variant={day.is_paid ? "default" : "secondary"}
                                   className="text-xs"
+                                  title={
+                                    day.is_paid
+                                      ? "Pagado el mismo día"
+                                      : "Pendiente al cierre"
+                                  }
                                 >
-                                  {day.hours_worked}h
+                                  {row.payment_type === "contract"
+                                    ? formatGtq(day.amount)
+                                    : `${day.hours_worked}h`}
                                 </Badge>
-                                <p className="text-xs text-muted-foreground">
-                                  {attendanceTypeLabel(day.attendance_type)
-                                    .replace("Jornada ", "")
-                                    .slice(0, 4)}
-                                </p>
+                                {row.payment_type !== "contract" && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {attendanceTypeLabel(day.attendance_type)
+                                      .replace("Jornada ", "")
+                                      .slice(0, 4)}
+                                  </p>
+                                )}
+                                {day.is_paid && (
+                                  <p className="text-xs text-green-700">Pagado</p>
+                                )}
                               </div>
                             ) : (
                               <span className="text-muted-foreground">—</span>
@@ -200,10 +231,15 @@ export function PayrollTable({ projectId, initialPayroll }: PayrollTableProps) {
                         <td className="px-3 py-2 text-right font-medium">
                           {formatGtq(row.total_amount)}
                         </td>
+                        <td className="px-3 py-2 text-right text-amber-700">
+                          {row.advances_amount > 0
+                            ? formatGtq(row.advances_amount)
+                            : "—"}
+                        </td>
                         <td className="px-3 py-2 text-right">
-                          {row.unpaid_amount > 0 ? (
-                            <span className="text-amber-700">
-                              {formatGtq(row.unpaid_amount)} pend.
+                          {row.net_amount > 0 ? (
+                            <span className="font-medium">
+                              {formatGtq(row.net_amount)}
                             </span>
                           ) : (
                             <span className="text-green-700">Pagado</span>
@@ -223,8 +259,11 @@ export function PayrollTable({ projectId, initialPayroll }: PayrollTableProps) {
                       <td className="px-3 py-2 text-right">
                         {formatGtq(payroll.total_amount)}
                       </td>
+                      <td className="px-3 py-2 text-right text-amber-700">
+                        {formatGtq(payroll.advances_amount)}
+                      </td>
                       <td className="px-3 py-2 text-right">
-                        {formatGtq(payroll.unpaid_amount)}
+                        {formatGtq(payroll.net_amount)}
                       </td>
                     </tr>
                   </tfoot>

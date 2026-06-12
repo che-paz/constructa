@@ -161,7 +161,7 @@ Tener un sistema donde un constructor puede crear su cuenta, agregar proyectos, 
 ---
 
 ## FASE 3 — Inteligencia Artificial (web)
-**Estado: 🟡 EN CURSO (Sprint 06)**  
+**Estado: ✅ COMPLETADO (Sprint 06)**  
 **Duración:** 2 semanas (Sprint 6) — *ajustado: sin WhatsApp ni voz*  
 **Objetivo:** Diferenciación con asistente IA y reportes automáticos en la web.
 
@@ -214,6 +214,33 @@ Tener un sistema donde un constructor puede crear su cuenta, agregar proyectos, 
 
 ---
 
+## FASE 3.5 — Feedback beta en producción
+**Estado: 🟡 EN CURSO (Sprint 07)**  
+**Duración:** ~1 semana  
+**Objetivo:** Ajustar planilla y asistente IA según uso real del primer constructor en Vercel.
+
+> Origen: `FEEDBACK/beta-constructor-2026-06-12.md`  
+> Plan técnico: `archive/sprint-07-beta-feedback.md`
+
+### Tareas
+
+```
+- [ ] Forma de pago: jornal diario vs por contrato (monto manual + nota)
+- [ ] Especialidad custom al registrar trabajador
+- [ ] Adelantos al personal con descuento en planilla semanal
+- [ ] Planilla: desglose bruto / adelantos / pagado / neto al cierre
+- [ ] IA: contexto de materiales por semana (cantidad, costo, etapa)
+```
+
+**Acuerdo operativo:** Constructor pausa módulo Personal; resto de app activa.
+
+**Criterio de finalización:**
+- Trabajador por contrato registrable con monto y nota del día
+- Adelantos descontados correctamente al cierre de semana
+- IA responde “¿cuánto [material] esta semana?” con detalle
+
+---
+
 ## FASE 4 — Beta Cerrada
 **Estado: 🔲 NO INICIADO**  
 **Duración:** 2 semanas (Sprint 8)  
@@ -223,6 +250,9 @@ Tener un sistema donde un constructor puede crear su cuenta, agregar proyectos, 
 
 ```
 - [ ] Onboarding guiado para nuevos constructores
+- [ ] Roles de usuario (constructor / supervisor / oficina / contador)
+- [ ] Configuración de empresa (logo, datos, cambio de contraseña)
+- [ ] PDF portal cliente con branding y descripción de etapas
 - [ ] Módulo 08: Fotografías (clasificación básica con IA)
 - [ ] Módulo 09: Directorio de proveedores
 - [ ] Módulo 14: Alertas de riesgo automáticas
@@ -273,9 +303,10 @@ Tener un sistema donde un constructor puede crear su cuenta, agregar proyectos, 
 | 1 | 3 | Auth + Proyectos + Pagos + Portal |
 | 2 | 5 | Materiales + Personal + Financiero |
 | 3 | 2 | IA + Reportes (web) |
+| 3.5 | 1 | Feedback beta — planilla + IA materiales |
 | 4 | 2 | Beta cerrada con 5 clientes |
 | 5 | 2 | Lanzamiento comercial |
-| **Total** | **~15 semanas** | **MVP en mercado** |
+| **Total** | **~16 semanas** | **MVP en mercado** |
 
 ---
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import type { PayrollSummary, Worker, WorkerAttendance } from "@constructa/types";
+import type { PayrollSummary, Worker, WorkerAdvance, WorkerAttendance } from "@constructa/types";
+import { getWeekStart } from "@constructa/utils";
 import { getAuthContext } from "@/lib/auth/get-organization";
 import { buildPayrollSummary } from "@/lib/workers/payroll";
 import { createClient } from "@/lib/supabase/server";
@@ -32,7 +33,10 @@ export async function GET(request: Request, { params }: RouteContext) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const [{ data: workers }, { data: attendance }] = await Promise.all([
+    const weekStart = getWeekStart(week);
+
+    const [{ data: workers }, { data: attendance }, { data: advances }] =
+      await Promise.all([
       supabase
         .from("workers")
         .select("*")
@@ -45,6 +49,12 @@ export async function GET(request: Request, { params }: RouteContext) {
         .eq("project_id", params.id)
         .eq("organization_id", auth.organization.id)
         .order("work_date", { ascending: true }),
+      supabase
+        .from("worker_advances")
+        .select("*")
+        .eq("project_id", params.id)
+        .eq("organization_id", auth.organization.id)
+        .eq("week_start", weekStart),
     ]);
 
     const summary: PayrollSummary = buildPayrollSummary(
@@ -52,6 +62,7 @@ export async function GET(request: Request, { params }: RouteContext) {
       (workers ?? []) as Worker[],
       (attendance ?? []) as WorkerAttendance[],
       week,
+      (advances ?? []) as WorkerAdvance[],
     );
 
     return NextResponse.json(summary);

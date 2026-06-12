@@ -252,6 +252,8 @@ export type WorkerSpecialty =
   | "pintor"
   | "otro";
 
+export type WorkerPaymentType = "daily" | "contract";
+
 export interface Worker {
   id: string;
   organization_id: string;
@@ -259,6 +261,7 @@ export interface Worker {
   dpi: string | null;
   phone: string | null;
   specialty: string | null;
+  payment_type: WorkerPaymentType;
   daily_rate: number | null;
   is_active: boolean;
   notes: string | null;
@@ -266,6 +269,21 @@ export interface Worker {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+}
+
+export interface WorkerAdvance {
+  id: string;
+  organization_id: string;
+  project_id: string;
+  worker_id: string;
+  amount: number;
+  advance_date: string;
+  notes: string | null;
+  week_start: string;
+  is_deducted: boolean;
+  created_by: string;
+  created_at: string;
+  worker?: Worker;
 }
 
 export type AttendanceType = "full" | "half" | "absent" | "overtime";
@@ -304,12 +322,15 @@ export interface PayrollWorkerRow {
   worker_id: string;
   worker_name: string;
   specialty: string | null;
+  payment_type: WorkerPaymentType;
   daily_rate: number;
   days: PayrollDayEntry[];
   total_hours: number;
   total_amount: number;
+  advances_amount: number;
   paid_amount: number;
   unpaid_amount: number;
+  net_amount: number;
 }
 
 export interface PayrollSummary {
@@ -319,8 +340,10 @@ export interface PayrollSummary {
   rows: PayrollWorkerRow[];
   total_hours: number;
   total_amount: number;
+  advances_amount: number;
   paid_amount: number;
   unpaid_amount: number;
+  net_amount: number;
   workers_count: number;
 }
 

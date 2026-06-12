@@ -4,50 +4,42 @@
 
 ---
 
-## Estado global: BETA EN PRODUCCIÓN — Vercel deploy ✅
+## Estado global: BETA EN PRODUCCIÓN — Sprint 07 feedback 🔧
 
 ```
-[████████████████████████] 98% — MVP web en producción · Beta real con constructores
+[████████████████████████] 98% — MVP web en producción · Ajustes planilla post-reunión beta
 ```
 
 ---
 
 ## Última sesión de trabajo
 
-- **Fecha:** 2026-06-10
+- **Fecha:** 2026-06-12
 - **Qué se hizo:**
-  - **PWA instalable (Android):** `@serwist/next` + service worker en `app/sw.ts`, manifest en `public/manifest.webmanifest`
-  - Iconos placeholder 192×192 y 512×512 en `public/icons/` (naranja CONSTRUCTA + “C”)
-  - Banner “Instalar CONSTRUCTA” con `beforeinstallprompt` (móvil Android, dismissible)
-  - Metadata PWA en `layout.tsx`: manifest, `themeColor`, `appleWebApp`
-  - Página offline `/~offline` para fallback sin conexión
-  - Fix middleware: `sw.js`, `manifest.webmanifest` e iconos excluidos de redirect a `/login`
-  - Build verificado: `pnpm build` ✅ · 42 tests ✅
-  - Deploy producción: https://constructa-nine.vercel.app ✅
-- **Archivos clave:** `apps/web/next.config.mjs`, `apps/web/app/sw.ts`, `apps/web/public/manifest.webmanifest`, `components/shared/pwa-install-banner.tsx`
-- **Próxima tarea inmediata:** Checklist PWA en Android real · Conectar GitHub → auto-deploy · logo definitivo para iconos
-- **Pendiente manual:** iOS → “Agregar a pantalla de inicio” (sin popup automático)
+  - Documentación completa del feedback de reunión con constructor en producción
+  - Definido **Sprint 07**: planilla (jornal vs contrato, adelantos, especialidad custom) + fix IA materiales
+  - Items generales (roles, config empresa, PDF portal branding) movidos a **Sprint 08**
+  - Acuerdo: constructor pausa módulo Personal; resto de app activa durante implementación
+- **Archivos clave:** `docs/FEEDBACK/beta-constructor-2026-06-12.md`, `docs/archive/sprint-07-beta-feedback.md`
+- **Próxima tarea inmediata:** Fase D — contexto IA materiales · validar planilla con constructor
+- **Producción:** https://constructa-nine.vercel.app — deploy Sprint 07 planilla ✅ (2026-06-12)
 
 ---
 
 ## Sprint activo
 
-**Sprint 06 — Asistente IA + Reportes Automáticos**  
-Estado: ✅ COMPLETADO → ver `archive/sprint-06.md`
+**Sprint 07 — Feedback beta: Planilla + IA materiales**  
+Estado: 🔲 EN CURSO → ver `archive/sprint-07-beta-feedback.md` · origen: `FEEDBACK/beta-constructor-2026-06-12.md`
 
 | Tarea | Estado | Notas |
 |---|---|---|
-| Chat UI streaming `/assistant` | ✅ DONE | SSE + Anthropic |
-| POST /api/ai/chat | ✅ DONE | Solo lectura, guarda historial |
-| GET /api/ai/conversations | ✅ DONE | Listado por usuario |
-| Inyección contexto tenant | ✅ DONE | Finanzas + materiales + cronograma |
-| Rate limit + quota por plan | ✅ DONE | ai_usage_log |
-| POST /api/reports/generate | ✅ DONE | < 30s objetivo |
-| PDF React-PDF descargable | ✅ DONE | bucket report-pdfs |
-| Tests unit + RLS | ✅ DONE | 42 tests |
-| WhatsApp / Voz | ⏸️ DIFERIDO | Post-beta |
+| Forma de pago jornal vs contrato | ✅ DONE | UI + API |
+| Especialidad custom | ✅ DONE | Opción “Otra” + texto libre |
+| Adelantos al personal | ✅ DONE | Formulario + planilla |
+| Planilla: bruto / adelantos / neto | ✅ DONE | Tabla + resumen semanal |
+| IA: materiales por semana | 🔲 TODO | Fase D |
 
-**Sprints anteriores:** 00–05 ✅ COMPLETADOS
+**Sprint anterior:** 06 — Asistente IA + Reportes ✅ COMPLETADO
 
 ---
 
@@ -58,12 +50,12 @@ Estado: ✅ COMPLETADO → ver `archive/sprint-06.md`
 | 01 Gestión de Proyectos | 🟡 MVP BASE | Sprint 01 | CRUD + dashboard individual |
 | 02 Cronograma Inteligente | 🟡 MVP BASE | Sprint 03 | CRUD etapas + timeline + retrasos |
 | 03 Control de Materiales | 🟡 MVP BASE | Sprint 03 | Catálogo + movimientos + alertas |
-| 04 Control de Personal | 🟡 MVP BASE | Sprint 04 | Asistencia + planilla semanal |
+| 04 Control de Personal | 🟡 SPRINT 07 CASI LISTO | Sprint 07 | Falta Fase D (IA materiales) |
 | 05 Adelantos y Pagos | 🟡 MVP BASE | Sprint 02 | CRUD + comprobantes + saldo |
 | 06 Portal del Cliente | 🟡 MVP BASE | Sprint 02 | Token público, avance + pagos |
 | 10 Centro Financiero | 🟡 MVP BASE | Sprint 05 | Dashboard + flujo de caja + CSV |
 | 07 Reportes Automáticos | 🟡 MVP BASE | Sprint 06 | PDF + narrativa Claude |
-| 11 Asistente IA | 🟡 MVP BASE | Sprint 06 | Chat streaming, solo lectura |
+| 11 Asistente IA | 🟡 MEJORA CONTEXTO | Sprint 07 | Fix consultas materiales/semana |
 | 08 Fotografías | 🔲 PRÓXIMO | Sprint 08 | Beta |
 | 09 Compras y Proveedores | 🔲 PRÓXIMO | Sprint 08 | Beta |
 | 14 Detección de Riesgos | 🔲 PRÓXIMO | Sprint 08 | Beta |

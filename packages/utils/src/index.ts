@@ -147,6 +147,13 @@ export function workerSpecialtyLabel(specialty: string | null): string {
   return WORKER_SPECIALTY_LABELS[specialty] ?? specialty;
 }
 
+export function workerPaymentTypeLabel(
+  paymentType: string | null | undefined,
+): string {
+  if (paymentType === "contract") return "Por contrato";
+  return "Jornal diario";
+}
+
 const DEFAULT_HOURS_BY_TYPE: Record<string, number> = {
   full: 8,
   half: 4,

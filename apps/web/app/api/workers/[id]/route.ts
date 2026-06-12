@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { UpdateWorkerSchema } from "@constructa/schemas";
 import type { Worker } from "@constructa/types";
 import { getAuthContext } from "@/lib/auth/get-organization";
+import { normalizeWorkerPayload } from "@/lib/workers/worker-payload";
 import { createClient } from "@/lib/supabase/server";
 
 interface RouteContext {
@@ -25,9 +26,10 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const supabase = await createClient();
+    const workerData = normalizeWorkerPayload(parsed.data);
     const { data, error } = await supabase
       .from("workers")
-      .update(parsed.data)
+      .update(workerData)
       .eq("id", params.id)
       .eq("organization_id", auth.organization.id)
       .is("deleted_at", null)

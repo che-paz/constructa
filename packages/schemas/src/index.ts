@@ -158,11 +158,14 @@ export const AttendanceTypeSchema = z.enum([
 
 export const CheckInMethodSchema = z.enum(["manual", "qr", "gps", "face"]);
 
-export const CreateWorkerSchema = z.object({
+export const WorkerPaymentTypeSchema = z.enum(["daily", "contract"]);
+
+const WorkerBaseSchema = z.object({
   name: z.string().min(1, "Nombre requerido").max(200),
   dpi: z.string().max(20).optional().nullable(),
   phone: z.string().max(20).optional().nullable(),
-  specialty: z.string().max(50).optional().nullable(),
+  specialty: z.string().max(100).optional().nullable(),
+  payment_type: WorkerPaymentTypeSchema.default("daily"),
   daily_rate: z
     .number()
     .nonnegative("El jornal debe ser cero o mayor")
@@ -171,9 +174,27 @@ export const CreateWorkerSchema = z.object({
   notes: z.string().max(500).optional().nullable(),
 });
 
-export const UpdateWorkerSchema = CreateWorkerSchema.partial().extend({
-  is_active: z.boolean().optional(),
-});
+function refineWorkerPaymentType<
+  T extends z.ZodType<{ payment_type?: "daily" | "contract"; daily_rate?: number | null }>,
+>(schema: T) {
+  return schema.superRefine((data, ctx) => {
+    if (data.payment_type === "daily" && data.daily_rate == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El jornal diario es requerido para trabajadores por jornal",
+        path: ["daily_rate"],
+      });
+    }
+  });
+}
+
+export const CreateWorkerSchema = refineWorkerPaymentType(WorkerBaseSchema);
+
+export const UpdateWorkerSchema = refineWorkerPaymentType(
+  WorkerBaseSchema.partial().extend({
+    is_active: z.boolean().optional(),
+  }),
+);
 
 export const CreateAttendanceSchema = z.object({
   project_id: z.string().uuid(),
@@ -183,8 +204,26 @@ export const CreateAttendanceSchema = z.object({
   check_out: z.string().datetime({ offset: true }).optional().nullable(),
   attendance_type: AttendanceTypeSchema.default("full"),
   check_in_method: CheckInMethodSchema.default("manual"),
+  amount_paid: z
+    .number()
+    .nonnegative("El monto debe ser cero o mayor")
+    .optional()
+    .nullable(),
   notes: z.string().max(500).optional().nullable(),
   is_paid: z.boolean().optional(),
+});
+
+export const CreateWorkerAdvanceSchema = z.object({
+  worker_id: z.string().uuid(),
+  amount: z.number().positive("El adelanto debe ser mayor a cero"),
+  advance_date: z.string().date("Fecha inválida"),
+  notes: z.string().max(500).optional().nullable(),
+  week_start: z.string().date("Semana inválida").optional(),
+});
+
+export const UpdateWorkerAdvanceSchema = z.object({
+  is_deducted: z.boolean().optional(),
+  notes: z.string().max(500).optional().nullable(),
 });
 
 export type LoginInput = z.infer<typeof LoginSchema>;
@@ -201,6 +240,8 @@ export type CreateMaterialBudgetInput = z.infer<typeof CreateMaterialBudgetSchem
 export type CreateWorkerInput = z.infer<typeof CreateWorkerSchema>;
 export type UpdateWorkerInput = z.infer<typeof UpdateWorkerSchema>;
 export type CreateAttendanceInput = z.infer<typeof CreateAttendanceSchema>;
+export type CreateWorkerAdvanceInput = z.infer<typeof CreateWorkerAdvanceSchema>;
+export type UpdateWorkerAdvanceInput = z.infer<typeof UpdateWorkerAdvanceSchema>;
 
 export const ExpenseCategorySchema = z.enum([
   "materiales",

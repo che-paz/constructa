@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { CreateWorkerSchema } from "@constructa/schemas";
 import type { Worker } from "@constructa/types";
 import { getAuthContext } from "@/lib/auth/get-organization";
+import { normalizeWorkerPayload } from "@/lib/workers/worker-payload";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -48,10 +49,11 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient();
+    const workerData = normalizeWorkerPayload(parsed.data);
     const { data, error } = await supabase
       .from("workers")
       .insert({
-        ...parsed.data,
+        ...workerData,
         organization_id: auth.organization.id,
         created_by: auth.userId,
       })
