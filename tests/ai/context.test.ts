@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildSystemPrompt } from "../../apps/web/lib/ai/prompts";
-import { serializeContextForPrompt } from "../../apps/web/lib/ai/context";
+import { serializeContextForPrompt } from "../../apps/web/lib/ai/serialize-context";
 
 describe("AI context builder (unit)", () => {
   it("builds system prompt with org name and GTQ rules", () => {
@@ -65,6 +65,83 @@ describe("AI context builder (unit)", () => {
 
     const prompt = buildSystemPrompt(context);
     expect(prompt).toContain("Proyecto en contexto: Proyecto Norte");
+  });
+});
+
+describe("AI material week context (unit)", () => {
+  it("aggregates consumption by material for the current week", async () => {
+    const { buildMaterialWeekContext } = await import(
+      "../../apps/web/lib/ai/material-context"
+    );
+
+    const context = buildMaterialWeekContext(
+      [
+        {
+          created_at: "2025-06-04T10:00:00.000Z",
+          entry_type: "consumption",
+          quantity: 1,
+          total_cost: 810,
+          material: { name: "Cemento", unit: "bolsa" },
+          stage: { name: "Cimentación" },
+        },
+        {
+          created_at: "2025-06-03T10:00:00.000Z",
+          entry_type: "consumption",
+          quantity: 5,
+          total_cost: 200,
+          material: { name: "Arena", unit: "m3" },
+          stage: { name: "Cimentación" },
+        },
+      ],
+      "2025-06-04",
+    );
+
+    const cemento = context.semana_actual.materiales.find(
+      (item) => item.material === "Cemento",
+    );
+
+    expect(context.semana_actual.inicio).toBe("2025-06-02");
+    expect(cemento).toEqual({
+      material: "Cemento",
+      unidad: "bolsa",
+      cantidad_total: 1,
+      costo_total: 810,
+      etapas: ["Cimentación"],
+    });
+    expect(context.movimientos_recientes[0]?.material).toBe("Cemento");
+  });
+
+  it("includes weekly material context in serialized prompt payload", () => {
+    const context = serializeContextForPrompt(
+      "Constructora Beta",
+      "profesional",
+      {
+        proyecto_detalle: {
+          materiales_por_semana: {
+            semana_actual: {
+              inicio: "2025-06-02",
+              fin: "2025-06-08",
+              materiales: [
+                {
+                  material: "Cemento",
+                  unidad: "bolsa",
+                  cantidad_total: 1,
+                  costo_total: 810,
+                  etapas: ["Cimentación"],
+                },
+              ],
+            },
+          },
+        },
+      },
+      { id: "p1", name: "KIMBERLY" },
+    );
+
+    const prompt = buildSystemPrompt(context);
+
+    expect(context.dataContext).toContain("Cemento");
+    expect(context.dataContext).toContain("Cimentación");
+    expect(prompt).toContain("materiales_por_semana");
   });
 });
 

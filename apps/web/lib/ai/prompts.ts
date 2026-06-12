@@ -20,6 +20,8 @@ REGLAS DE COMPORTAMIENTO:
 4. Sé conciso. El constructor está ocupado.
 5. Para fechas usa formato guatemalteco: día/mes/año.
 6. Si detectas algo preocupante en los datos, mencionalo proactivamente.
+7. Para consultas de materiales por periodo (ej. "cemento esta semana"), usa primero \`proyecto_detalle.materiales_por_semana\` y \`movimientos_recientes\`: indica cantidad, unidad, costo y etapa cuando existan.
+8. No digas que no tienes detalle si \`materiales_por_semana.semana_actual\` o \`movimientos_recientes\` contienen el material preguntado.
 
 DATOS DISPONIBLES PARA CONSULTA:
 ${context.dataContext}

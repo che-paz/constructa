@@ -21,7 +21,7 @@
   - Items generales (roles, config empresa, PDF portal branding) movidos a **Sprint 08**
   - Acuerdo: constructor pausa módulo Personal; resto de app activa durante implementación
 - **Archivos clave:** `docs/FEEDBACK/beta-constructor-2026-06-12.md`, `docs/archive/sprint-07-beta-feedback.md`
-- **Próxima tarea inmediata:** Fase D — contexto IA materiales · validar planilla con constructor
+- **Próxima tarea inmediata:** Validar planilla + IA con constructor · corregir URL remote git si aplica
 - **Producción:** https://constructa-nine.vercel.app — deploy Sprint 07 planilla ✅ (2026-06-12)
 
 ---
@@ -37,7 +37,7 @@ Estado: 🔲 EN CURSO → ver `archive/sprint-07-beta-feedback.md` · origen: `F
 | Especialidad custom | ✅ DONE | Opción “Otra” + texto libre |
 | Adelantos al personal | ✅ DONE | Formulario + planilla |
 | Planilla: bruto / adelantos / neto | ✅ DONE | Tabla + resumen semanal |
-| IA: materiales por semana | 🔲 TODO | Fase D |
+| IA: materiales por semana | ✅ DONE | Contexto + prompt |
 
 **Sprint anterior:** 06 — Asistente IA + Reportes ✅ COMPLETADO
 
@@ -50,12 +50,12 @@ Estado: 🔲 EN CURSO → ver `archive/sprint-07-beta-feedback.md` · origen: `F
 | 01 Gestión de Proyectos | 🟡 MVP BASE | Sprint 01 | CRUD + dashboard individual |
 | 02 Cronograma Inteligente | 🟡 MVP BASE | Sprint 03 | CRUD etapas + timeline + retrasos |
 | 03 Control de Materiales | 🟡 MVP BASE | Sprint 03 | Catálogo + movimientos + alertas |
-| 04 Control de Personal | 🟡 SPRINT 07 CASI LISTO | Sprint 07 | Falta Fase D (IA materiales) |
+| 04 Control de Personal | ✅ SPRINT 07 | Sprint 07 | Planilla beta desplegada |
 | 05 Adelantos y Pagos | 🟡 MVP BASE | Sprint 02 | CRUD + comprobantes + saldo |
 | 06 Portal del Cliente | 🟡 MVP BASE | Sprint 02 | Token público, avance + pagos |
 | 10 Centro Financiero | 🟡 MVP BASE | Sprint 05 | Dashboard + flujo de caja + CSV |
 | 07 Reportes Automáticos | 🟡 MVP BASE | Sprint 06 | PDF + narrativa Claude |
-| 11 Asistente IA | 🟡 MEJORA CONTEXTO | Sprint 07 | Fix consultas materiales/semana |
+| 11 Asistente IA | ✅ MEJORA CONTEXTO | Sprint 07 | Materiales por semana en contexto |
 | 08 Fotografías | 🔲 PRÓXIMO | Sprint 08 | Beta |
 | 09 Compras y Proveedores | 🔲 PRÓXIMO | Sprint 08 | Beta |
 | 14 Detección de Riesgos | 🔲 PRÓXIMO | Sprint 08 | Beta |

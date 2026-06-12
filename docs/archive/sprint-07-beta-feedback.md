@@ -105,14 +105,14 @@ neto_a_pagar      = bruto_semanal - adelantos_semana - pagado_en_semana
 
 ---
 
-## Fase D — Asistente IA (materiales)
+**Estado: ✅ COMPLETADO** (2026-06-12)
 
 | # | Tarea | Archivo |
 |---|---|---|
-| D1 | Query entradas de material con fecha, filtro semana actual | `lib/ai/context.ts` |
-| D2 | Agregar `materiales_semana_actual` al JSON de contexto | `lib/ai/context.ts` |
-| D3 | System prompt: usar desglose antes de negar detalle | `lib/ai/prompt.ts` o route chat |
-| D4 | Test unitario serialización contexto con cemento semanal | `lib/ai/context.test.ts` |
+| D1 | Entradas de material con fecha y etapa | `lib/ai/context.ts` ✅ |
+| D2 | Bloque `materiales_por_semana` en contexto | `lib/ai/material-context.ts` ✅ |
+| D3 | System prompt: usar desglose antes de negar | `lib/ai/prompts.ts` ✅ |
+| D4 | Tests agregación semanal de cemento | `tests/ai/context.test.ts` ✅ |
 
 ---
 

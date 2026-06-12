@@ -39,4 +39,4 @@ GET    /api/ai/conversations
 - [x] Responde consultas generales de gastos y avance
 - [x] Rate limit 100 req/hora por org
 - [x] Respuesta en español guatemalteco
-- [ ] Responde consumo de material específico por semana con cantidad, costo y etapa (Sprint 07)
+- [x] Responde consumo de material específico por semana con cantidad, costo y etapa (Sprint 07)

@@ -1,3 +1,4 @@
+import { buildMaterialWeekContext } from "@/lib/ai/material-context";
 import type { OrganizationPlan } from "@constructa/types";
 import { fetchOrgFinancialData } from "@/lib/finance/fetch-org-financial-data";
 import { buildFinanceDashboard, buildProjectFinancialSummary } from "@/lib/finance/summary";
@@ -85,10 +86,11 @@ export async function buildOrganizationContext(
         .eq("organization_id", organizationId),
       supabase
         .from("material_entries")
-        .select("*, material:material_catalog(name, unit)")
+        .select("*, material:material_catalog(name, unit), stage:stages(name)")
         .eq("project_id", projectId)
         .eq("organization_id", organizationId)
-        .is("deleted_at", null),
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false }),
       supabase
         .from("payments")
         .select("amount, payment_date, description")
@@ -158,6 +160,8 @@ export async function buildOrganizationContext(
         })),
       );
 
+      const materialWeekContext = buildMaterialWeekContext(entries ?? []);
+
       contextPayload.proyecto_detalle = {
         id: project.id,
         nombre: project.name,
@@ -169,6 +173,7 @@ export async function buildOrganizationContext(
             : null,
         financiero: financial,
         materiales: materialSummary,
+        materiales_por_semana: materialWeekContext,
         cronograma: {
           etapas: stages.map((s) => ({
             nombre: s.name,
@@ -194,22 +199,4 @@ export async function buildOrganizationContext(
   };
 }
 
-/** Serializa contexto para tests sin acceso a BD. */
-export function serializeContextForPrompt(
-  orgName: string,
-  plan: OrganizationPlan,
-  payload: Record<string, unknown>,
-  project?: { id: string; name: string },
-): OrganizationContext {
-  const proyectos = payload.proyectos as Array<{ estado: string }> | undefined;
-  const activeProjectCount =
-    proyectos?.filter((p) => p.estado === "active").length ?? 0;
-
-  return {
-    orgName,
-    plan,
-    activeProjectCount,
-    currentProject: project,
-    dataContext: JSON.stringify(payload, null, 2),
-  };
-}
+export { serializeContextForPrompt } from "@/lib/ai/serialize-context";
