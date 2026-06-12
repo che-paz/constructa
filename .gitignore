@@ -36,5 +36,9 @@ next-env.d.ts
 # Vercel
 .vercel
 
+# Serwist (generado en build)
+apps/web/public/sw*
+apps/web/public/swe-worker*
+
 # Testing
 coverage/

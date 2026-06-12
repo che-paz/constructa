@@ -1,13 +1,15 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Organization, UserOrganization } from "@constructa/types";
 
 export interface AuthContext {
   userId: string;
+  userEmail: string;
   membership: UserOrganization;
   organization: Organization;
 }
 
-export async function getAuthContext(): Promise<AuthContext | null> {
+export const getAuthContext = cache(async (): Promise<AuthContext | null> => {
   const supabase = await createClient();
 
   const {
@@ -31,6 +33,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 
   return {
     userId: user.id,
+    userEmail: user.email ?? "",
     membership: {
       id: membership.id,
       user_id: membership.user_id,
@@ -40,4 +43,4 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     },
     organization: org,
   };
-}
+});

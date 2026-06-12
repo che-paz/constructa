@@ -134,7 +134,7 @@ export function AIChat({ projects, initialProjectId }: AIChatProps) {
   }
 
   return (
-    <Card className="flex h-[calc(100vh-12rem)] flex-col">
+    <Card className="flex h-[calc(100dvh-13rem)] flex-col md:h-[calc(100vh-12rem)]">
       <CardHeader className="shrink-0 border-b pb-4">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-primary" />

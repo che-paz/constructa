@@ -6,6 +6,7 @@ import type {
   Worker,
   WorkerAttendance,
 } from "@constructa/types";
+import { CollapsibleFormSection } from "@/components/shared/collapsible-form-section";
 import {
   Card,
   CardContent,
@@ -38,17 +39,33 @@ export function WorkersSection({
 
   const selectedWorker = workers.find((w) => w.id === selectedWorkerId) ?? null;
 
+  const workersHint =
+    workers.length > 0 ? (
+      <p className="text-sm text-muted-foreground">
+        {workers.length} trabajador{workers.length === 1 ? "" : "es"} activo
+        {workers.length === 1 ? "" : "s"} en la organización
+      </p>
+    ) : undefined;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
+      <CollapsibleFormSection
+        title="Personal de la organización"
+        description="Trabajadores compartidos entre proyectos — jornal en quetzales (GTQ)"
+        actionLabel="Agregar trabajador"
+        collapsedHint={workersHint}
+      >
+        <WorkerForm />
+      </CollapsibleFormSection>
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Personal de la organización</CardTitle>
+          <CardTitle className="text-base">Equipo asignado</CardTitle>
           <CardDescription>
-            Trabajadores compartidos entre proyectos — jornal en quetzales (GTQ)
+            Selecciona un trabajador para ver su historial de asistencia
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <WorkerForm />
+        <CardContent>
           <WorkerList
             workers={workers}
             selectedWorkerId={selectedWorkerId}
@@ -57,19 +74,15 @@ export function WorkersSection({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Registrar asistencia</CardTitle>
-          <CardDescription>
-            Marca entrada, salida y tipo de jornada para este proyecto
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AttendanceForm projectId={projectId} workers={workers} />
-        </CardContent>
-      </Card>
+      <CollapsibleFormSection
+        title="Registrar asistencia"
+        description="Marca entrada, salida y tipo de jornada para este proyecto"
+        actionLabel="Registrar asistencia"
+      >
+        <AttendanceForm projectId={projectId} workers={workers} />
+      </CollapsibleFormSection>
 
-      <PayrollTable payroll={payroll} />
+      <PayrollTable projectId={projectId} initialPayroll={payroll} />
 
       {selectedWorker && (
         <WorkerHistory worker={selectedWorker} attendance={attendance} />

@@ -4,6 +4,7 @@ import type {
   MaterialSummary,
   Stage,
 } from "@constructa/types";
+import { CollapsibleFormSection } from "@/components/shared/collapsible-form-section";
 import {
   Card,
   CardContent,
@@ -38,62 +39,51 @@ export function MaterialsSection({
   summary,
   alerts,
 }: MaterialsSectionProps) {
+  const catalogHint =
+    catalog.length > 0 ? (
+      <p className="text-sm text-muted-foreground">
+        {catalog.length} materiales en catálogo:{" "}
+        {catalog.map((m) => m.name).join(", ")}
+      </p>
+    ) : undefined;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <MaterialAlertBanner alerts={alerts} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Catálogo de materiales</CardTitle>
-          <CardDescription>
-            Materiales comunes de construcción en Guatemala
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CatalogForm />
-          {catalog.length > 0 && (
-            <p className="mt-4 text-sm text-muted-foreground">
-              {catalog.length} materiales en catálogo:{" "}
-              {catalog.map((m) => m.name).join(", ")}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <CollapsibleFormSection
+        title="Catálogo de materiales"
+        description="Materiales comunes de construcción en Guatemala"
+        actionLabel="Gestionar catálogo"
+        collapsedHint={catalogHint}
+      >
+        <CatalogForm />
+      </CollapsibleFormSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Presupuesto de materiales por etapa
-          </CardTitle>
-          <CardDescription>
-            Planifica cuánto consumirás — separado de compras y consumos reales
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <MaterialBudgetForm
-            projectId={projectId}
-            catalog={catalog}
-            stages={stages}
-            summary={summary}
-          />
-        </CardContent>
-      </Card>
+      <CollapsibleFormSection
+        title="Presupuesto de materiales por etapa"
+        description="Planifica cuánto consumirás — separado de compras y consumos reales"
+        actionLabel="Definir presupuesto"
+      >
+        <MaterialBudgetForm
+          projectId={projectId}
+          catalog={catalog}
+          stages={stages}
+          summary={summary}
+        />
+      </CollapsibleFormSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Registrar movimiento</CardTitle>
-          <CardDescription>
-            Compras, consumo, transferencias, pérdidas y devoluciones
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <MaterialEntryForm
-            projectId={projectId}
-            catalog={catalog}
-            stages={stages}
-          />
-        </CardContent>
-      </Card>
+      <CollapsibleFormSection
+        title="Registrar movimiento"
+        description="Compras, consumo, transferencias, pérdidas y devoluciones"
+        actionLabel="Registrar movimiento"
+      >
+        <MaterialEntryForm
+          projectId={projectId}
+          catalog={catalog}
+          stages={stages}
+        />
+      </CollapsibleFormSection>
 
       <MaterialSummaryCard summary={summary} />
 

@@ -1,7 +1,8 @@
 import { createServerClient, type SetAllCookies } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
-export async function createClient() {
+export const createClient = cache(async () => {
   const cookieStore = await cookies();
 
   const setAll: SetAllCookies = (cookiesToSet) => {
@@ -26,4 +27,4 @@ export async function createClient() {
       },
     },
   );
-}
+});

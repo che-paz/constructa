@@ -1,4 +1,5 @@
 import type { ScheduleSummary } from "@constructa/types";
+import { CollapsibleFormSection } from "@/components/shared/collapsible-form-section";
 import {
   Card,
   CardContent,
@@ -16,8 +17,8 @@ interface StagesSectionProps {
 
 export function StagesSection({ projectId, schedule }: StagesSectionProps) {
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-4 md:space-y-6">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Etapas</CardDescription>
@@ -48,17 +49,13 @@ export function StagesSection({ projectId, schedule }: StagesSectionProps) {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Agregar etapa</CardTitle>
-          <CardDescription>
-            Plantillas guatemaltecas o nombre personalizado
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <StageForm projectId={projectId} />
-        </CardContent>
-      </Card>
+      <CollapsibleFormSection
+        title="Agregar etapa"
+        description="Plantillas guatemaltecas o nombre personalizado"
+        actionLabel="Agregar etapa"
+      >
+        <StageForm projectId={projectId} />
+      </CollapsibleFormSection>
 
       <Card>
         <CardHeader>

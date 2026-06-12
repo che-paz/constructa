@@ -96,6 +96,57 @@ Ver `docs/SUPABASE_CLOUD.md`.
 
 ---
 
+## PWA — Instalación en móvil
+
+CONSTRUCTA es una **Progressive Web App** instalable. Stack: `@serwist/next` + `serwist` (no `next-pwa` legacy).
+
+| Archivo | Propósito |
+|---|---|
+| `apps/web/public/manifest.webmanifest` | Manifest web (`display: standalone`, `lang: es-GT`) |
+| `apps/web/public/icons/icon-192.png` | Icono 192×192 |
+| `apps/web/public/icons/icon-512.png` | Icono 512×512 |
+| `apps/web/app/sw.ts` | Service worker (cache mínimo + fallback offline) |
+| `apps/web/public/sw.js` | Generado en build (no commitear) |
+| `components/shared/pwa-install-banner.tsx` | Banner Android con `beforeinstallprompt` |
+| `components/shared/service-worker-register.tsx` | Registro SW en cliente (solo producción) |
+
+**Middleware:** `sw.js` y `manifest.webmanifest` están excluidos del matcher de auth (`middleware.ts`). `/~offline` es ruta pública para el fallback offline.
+
+**Regenerar iconos placeholder:**
+
+```bash
+cd apps/web && node scripts/generate-pwa-icons.mjs
+```
+
+### Android — criterios de instalación
+
+1. Abrir https://constructa-nine.vercel.app en **Chrome** (Android)
+2. Menú ⋮ → debe aparecer **“Instalar app”** o **“Añadir a pantalla de inicio”**
+3. El banner propio **“Instalar CONSTRUCTA”** aparece si Chrome dispara `beforeinstallprompt` (HTTPS + manifest + SW + iconos válidos)
+4. Tras instalar, la app abre en **modo standalone** (sin barra del navegador)
+5. **Login/signup** debe funcionar igual en la PWA instalada (cookies Supabase + redirect URLs)
+
+### iOS (Safari) — sin popup automático
+
+iOS no soporta `beforeinstallprompt`. Flujo manual:
+
+1. Abrir la URL en **Safari**
+2. Tocar el botón **Compartir** (cuadrado con flecha)
+3. Elegir **“Agregar a pantalla de inicio”**
+4. Confirmar nombre “CONSTRUCTA”
+
+`appleWebApp` en `layout.tsx` mejora la experiencia al abrir desde el icono del home screen.
+
+### Checklist post-deploy (Android)
+
+- [ ] Chrome muestra “Instalar app” en menú ⋮
+- [ ] Banner propio funciona con `beforeinstallprompt`
+- [ ] App abre en standalone (sin barra del navegador)
+- [ ] Login/signup sigue funcionando en PWA instalada
+- [ ] Página `/~offline` visible sin conexión en navegación
+
+---
+
 ## Comandos útiles
 
 ```bash

@@ -1,4 +1,5 @@
 import type { Expense } from "@constructa/types";
+import { CollapsibleFormSection } from "@/components/shared/collapsible-form-section";
 import {
   Card,
   CardContent,
@@ -16,19 +17,14 @@ interface ExpensesSectionProps {
 
 export function ExpensesSection({ projectId, expenses }: ExpensesSectionProps) {
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Registrar gasto</CardTitle>
-          <CardDescription>
-            Gastos adicionales del proyecto (transporte, servicios, otros) que
-            no están en materiales ni planilla
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ExpenseForm projectId={projectId} />
-        </CardContent>
-      </Card>
+    <div className="space-y-4 md:space-y-6">
+      <CollapsibleFormSection
+        title="Registrar gasto"
+        description="Gastos adicionales del proyecto (transporte, servicios, otros) que no están en materiales ni planilla"
+        actionLabel="Registrar gasto"
+      >
+        <ExpenseForm projectId={projectId} />
+      </CollapsibleFormSection>
 
       <Card>
         <CardHeader>

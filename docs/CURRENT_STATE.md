@@ -16,14 +16,17 @@
 
 - **Fecha:** 2026-06-10
 - **Qué se hizo:**
-  - **Deploy Vercel (CLI):** https://constructa-nine.vercel.app — monorepo pnpm, root `apps/web`
-  - Pestañas en dashboard de proyecto (`project-tab-nav.tsx`) — commit `efdb065`
-  - Fix build Vercel: eliminado `(dashboard)/page.tsx` (conflicto con `/` landing)
-  - Env vars en Vercel: Supabase, Anthropic, `CONSTRUCTA_DEFAULT_PLAN=profesional`
-  - Docs: `docs/archive/deploy-vercel.md`
-- **Archivos clave:** `vercel.json`, `apps/web/next.config.mjs`, `docs/archive/deploy-vercel.md`
-- **Próxima tarea inmediata:** Conectar GitHub → auto-deploy · Supabase Auth URLs producción · checklist beta
-- **Pendiente manual:** Supabase → Site URL + Redirect URLs con dominio Vercel
+  - **PWA instalable (Android):** `@serwist/next` + service worker en `app/sw.ts`, manifest en `public/manifest.webmanifest`
+  - Iconos placeholder 192×192 y 512×512 en `public/icons/` (naranja CONSTRUCTA + “C”)
+  - Banner “Instalar CONSTRUCTA” con `beforeinstallprompt` (móvil Android, dismissible)
+  - Metadata PWA en `layout.tsx`: manifest, `themeColor`, `appleWebApp`
+  - Página offline `/~offline` para fallback sin conexión
+  - Fix middleware: `sw.js`, `manifest.webmanifest` e iconos excluidos de redirect a `/login`
+  - Build verificado: `pnpm build` ✅ · 42 tests ✅
+  - Deploy producción: https://constructa-nine.vercel.app ✅
+- **Archivos clave:** `apps/web/next.config.mjs`, `apps/web/app/sw.ts`, `apps/web/public/manifest.webmanifest`, `components/shared/pwa-install-banner.tsx`
+- **Próxima tarea inmediata:** Checklist PWA en Android real · Conectar GitHub → auto-deploy · logo definitivo para iconos
+- **Pendiente manual:** iOS → “Agregar a pantalla de inicio” (sin popup automático)
 
 ---
 

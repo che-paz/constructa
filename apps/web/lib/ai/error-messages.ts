@@ -8,6 +8,14 @@ export function mapAIErrorToMessage(error: unknown): string {
     return "La cuenta de Anthropic no tiene créditos suficientes. Agregue saldo en console.anthropic.com → Plans & Billing.";
   }
 
+  if (
+    errMsg.includes("not_found_error") ||
+    errMsg.includes("model:") ||
+    (errMsg.includes("404") && errMsg.includes("model"))
+  ) {
+    return "Modelo de IA no disponible. Actualice ANTHROPIC_MODEL (recomendado: claude-sonnet-4-6) y reinicie el servidor.";
+  }
+
   if (errMsg.includes("authentication") || errMsg.includes("401")) {
     return "Clave de API de Anthropic inválida. Verifique ANTHROPIC_API_KEY en .env.local.";
   }

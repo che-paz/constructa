@@ -47,7 +47,7 @@ export default async function ProjectsPage({ searchParams }: Props) {
       </Suspense>
 
       {projectList.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-12 text-center">
+        <div className="rounded-lg border border-dashed p-8 text-center md:p-12">
           <p className="text-muted-foreground">
             {searchParams.search || searchParams.status
               ? "No hay proyectos que coincidan con los filtros."

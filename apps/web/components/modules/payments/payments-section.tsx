@@ -1,5 +1,7 @@
 import type { PaymentBalance } from "@constructa/types";
 import { formatGtq } from "@constructa/utils";
+import { CollapsibleFormSection } from "@/components/shared/collapsible-form-section";
+import { FinanceMetricCard } from "@/components/shared/finance-metric-card";
 import {
   Card,
   CardContent,
@@ -22,57 +24,41 @@ export function PaymentsSection({
   payments,
 }: PaymentsSectionProps) {
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Presupuesto total</CardDescription>
-            <CardTitle className="text-2xl">
-              {balance.total_budget != null
-                ? formatGtq(balance.total_budget)
-                : "Sin definir"}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Anticipo acordado</CardDescription>
-            <CardTitle className="text-2xl">
-              {formatGtq(balance.client_advance)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total pagos registrados</CardDescription>
-            <CardTitle className="text-2xl">
-              {formatGtq(balance.total_paid)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Saldo pendiente de la obra</CardDescription>
-            <CardTitle className="text-2xl">
-              {formatGtq(balance.pending_balance)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
+    <div className="space-y-4 md:space-y-6">
+      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+        <FinanceMetricCard
+          label="Presupuesto total"
+          value={
+            balance.total_budget != null
+              ? formatGtq(balance.total_budget)
+              : "Sin definir"
+          }
+        />
+        <FinanceMetricCard
+          label="Anticipo acordado"
+          value={formatGtq(balance.client_advance)}
+        />
+        <FinanceMetricCard
+          label="Total pagos registrados"
+          value={formatGtq(balance.total_paid)}
+        />
+        <FinanceMetricCard
+          label="Saldo pendiente de la obra"
+          value={formatGtq(balance.pending_balance)}
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Registrar pago</CardTitle>
-          <CardDescription>
-            {balance.total_budget != null
-              ? `Saldo = presupuesto total (${formatGtq(balance.total_budget)}) − pagos registrados`
-              : "Define el presupuesto total del proyecto para calcular el saldo de la obra"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PaymentForm projectId={projectId} />
-        </CardContent>
-      </Card>
+      <CollapsibleFormSection
+        title="Registrar pago"
+        description={
+          balance.total_budget != null
+            ? `Saldo = presupuesto total (${formatGtq(balance.total_budget)}) − pagos registrados`
+            : "Define el presupuesto total del proyecto para calcular el saldo de la obra"
+        }
+        actionLabel="Registrar pago"
+      >
+        <PaymentForm projectId={projectId} />
+      </CollapsibleFormSection>
 
       <Card>
         <CardHeader>

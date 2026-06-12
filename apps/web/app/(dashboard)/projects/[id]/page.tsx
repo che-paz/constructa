@@ -5,6 +5,7 @@ import type {
   MaterialAlert,
   MaterialCatalog,
   MaterialSummary,
+  Payment,
   PayrollSummary,
   Project,
   ProjectFinancialSummary,
@@ -16,10 +17,8 @@ import type {
 } from "@constructa/types";
 import { getAuthContext } from "@/lib/auth/get-organization";
 import { buildProjectFinancialSummary } from "@/lib/finance/summary";
-import { attachInvoiceUrls } from "@/lib/materials/invoice-url";
 import { buildMaterialAlerts, buildMaterialSummary } from "@/lib/materials/summary";
 import { computePaymentBalance } from "@/lib/payments/balance";
-import { attachReceiptUrls } from "@/lib/payments/receipt-url";
 import { enrichStageWithDelay, isStageCriticallyDelayed } from "@/lib/schedule/delay";
 import { buildPayrollSummary } from "@/lib/workers/payroll";
 import { createClient } from "@/lib/supabase/server";
@@ -27,10 +26,9 @@ import { ProjectDashboard } from "@/components/modules/projects/project-dashboar
 
 interface Props {
   params: { id: string };
-  searchParams: { week?: string };
 }
 
-export default async function ProjectDetailPage({ params, searchParams }: Props) {
+export default async function ProjectDetailPage({ params }: Props) {
   const auth = await getAuthContext();
   if (!auth) redirect("/onboarding");
 
@@ -168,7 +166,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
     params.id,
     (workers ?? []) as Worker[],
     (attendance ?? []) as WorkerAttendance[],
-    searchParams.week,
+    undefined,
   );
 
   const financialSummary: ProjectFinancialSummary = buildProjectFinancialSummary(
@@ -196,11 +194,6 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       progress_pct: s.progress_pct,
     })),
   );
-
-  const [paymentsWithUrls, entriesWithUrls] = await Promise.all([
-    attachReceiptUrls(payments ?? []),
-    attachInvoiceUrls(materialEntries ?? []),
-  ]);
 
   const summary: ProjectSummary = {
     id: project.id,
@@ -231,9 +224,9 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
         summary={summary}
         schedule={schedule}
         balance={balance}
-        payments={paymentsWithUrls}
+        payments={(payments ?? []) as Payment[]}
         catalog={(catalog ?? []) as MaterialCatalog[]}
-        materialEntries={entriesWithUrls}
+        materialEntries={materialEntries ?? []}
         materialSummary={materialSummary}
         materialAlerts={materialAlerts}
         workers={(workers ?? []) as Worker[]}

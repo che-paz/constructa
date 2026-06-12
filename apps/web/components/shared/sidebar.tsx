@@ -2,14 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Building2, LayoutDashboard, Wallet } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
+import { DASHBOARD_NAV_ITEMS, isNavItemActive } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-
-const NAV_ITEMS = [
-  { href: "/projects", label: "Proyectos", icon: Building2 },
-  { href: "/finance", label: "Finanzas", icon: Wallet },
-  { href: "/assistant", label: "Asistente IA", icon: Bot },
-] as const;
 
 interface SidebarProps {
   organizationName: string;
@@ -19,7 +14,7 @@ export function Sidebar({ organizationName }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 flex-col border-r bg-card md:flex">
+    <aside className="hidden w-64 shrink-0 flex-col border-r bg-card md:flex">
       <div className="flex h-14 items-center gap-2 border-b px-4">
         <LayoutDashboard className="h-5 w-5 text-primary" />
         <div className="min-w-0">
@@ -30,14 +25,14 @@ export function Sidebar({ organizationName }: SidebarProps) {
         </div>
       </div>
       <nav className="flex-1 space-y-1 p-3">
-        {NAV_ITEMS.map((item) => {
-          const isActive =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+        {DASHBOARD_NAV_ITEMS.map((item) => {
+          const isActive = isNavItemActive(pathname, item.href);
           const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
+              prefetch
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive

@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type {
   Expense,
   MaterialAlert,
@@ -92,26 +92,15 @@ export function ProjectDashboard({
   clientPortalUrl,
 }: ProjectDashboardProps) {
   const [copied, setCopied] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [financeSection, setFinanceSection] = useState<"pagos" | "gastos">(
     "pagos",
   );
 
-  const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
-
-  const tabParam = searchParams.get("tab");
-  const activeTab: ProjectTabId = isValidProjectTab(tabParam)
-    ? tabParam
-    : "resumen";
-
-  const setTab = useCallback(
-    (tab: ProjectTabId) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("tab", tab);
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    },
-    [pathname, router, searchParams],
+  const initialTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<ProjectTabId>(() =>
+    isValidProjectTab(initialTab) ? initialTab : "resumen",
   );
 
   const location = [project.address, project.municipality, project.department]
@@ -128,61 +117,66 @@ export function ProjectDashboard({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-            <Badge>{projectStatusLabel(project.status)}</Badge>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl font-bold tracking-tight md:text-2xl">
+              {project.name}
+            </h1>
+            <Badge className="shrink-0">{projectStatusLabel(project.status)}</Badge>
           </div>
           {location && (
             <p className="mt-1 text-sm text-muted-foreground">{location}</p>
           )}
         </div>
-        <Button asChild variant="outline">
+        <Button asChild variant="outline" className="w-full shrink-0 sm:w-auto">
           <Link href={`/projects/${project.id}/edit`}>Editar proyecto</Link>
         </Button>
       </div>
 
       <ProjectTabNav
         activeTab={activeTab}
-        onTabChange={setTab}
+        onTabChange={(tab) => startTransition(() => setActiveTab(tab))}
         materialAlertCount={materialAlerts.length}
       />
 
+      <div
+        className={isPending ? "opacity-60 transition-opacity duration-150" : undefined}
+      >
       {activeTab === "resumen" && (
         <div className="space-y-6 pt-2">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+            <Card className="min-w-0">
               <CardHeader className="pb-2">
                 <CardDescription>Avance general</CardDescription>
-                <CardTitle className="text-3xl">
+                <CardTitle className="text-xl font-semibold tabular-nums leading-tight md:text-3xl">
                   {summary.progress_pct}%
                 </CardTitle>
               </CardHeader>
             </Card>
-            <Card>
+            <Card className="min-w-0">
               <CardHeader className="pb-2">
                 <CardDescription>Presupuesto</CardDescription>
-                <CardTitle className="text-2xl">
+                <CardTitle className="text-sm font-semibold tabular-nums leading-tight sm:text-base md:text-xl">
                   {project.total_budget != null
                     ? formatGtq(budget)
                     : "Sin definir"}
                 </CardTitle>
               </CardHeader>
             </Card>
-            <Card>
+            <Card className="min-w-0">
               <CardHeader className="pb-2">
                 <CardDescription>Gastado</CardDescription>
-                <CardTitle className="text-2xl">
+                <CardTitle className="text-sm font-semibold tabular-nums leading-tight sm:text-base md:text-xl">
                   {formatGtq(financialSummary.total_spent)}
                 </CardTitle>
               </CardHeader>
             </Card>
-            <Card>
+            <Card className="min-w-0">
               <CardHeader className="pb-2">
                 <CardDescription>Saldo pendiente</CardDescription>
-                <CardTitle className="text-2xl">
+                <CardTitle className="text-sm font-semibold tabular-nums leading-tight sm:text-base md:text-xl">
                   {formatGtq(balance.pending_balance)}
                 </CardTitle>
               </CardHeader>
@@ -211,7 +205,7 @@ export function ProjectDashboard({
           <div className="grid gap-4 sm:grid-cols-3">
             <Card
               className="cursor-pointer transition-colors hover:bg-muted/50"
-              onClick={() => setTab("cronograma")}
+              onClick={() => setActiveTab("cronograma")}
             >
               <CardHeader className="pb-2">
                 <CardDescription>Cronograma</CardDescription>
@@ -229,7 +223,7 @@ export function ProjectDashboard({
             </Card>
             <Card
               className="cursor-pointer transition-colors hover:bg-muted/50"
-              onClick={() => setTab("materiales")}
+              onClick={() => setActiveTab("materiales")}
             >
               <CardHeader className="pb-2">
                 <CardDescription>Materiales</CardDescription>
@@ -247,7 +241,7 @@ export function ProjectDashboard({
             </Card>
             <Card
               className="cursor-pointer transition-colors hover:bg-muted/50"
-              onClick={() => setTab("personal")}
+              onClick={() => setActiveTab("personal")}
             >
               <CardHeader className="pb-2">
                 <CardDescription>Personal</CardDescription>
@@ -276,7 +270,7 @@ export function ProjectDashboard({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setTab("cliente")}
+                  onClick={() => setActiveTab("cliente")}
                 >
                   Gestionar
                 </Button>
@@ -376,6 +370,7 @@ export function ProjectDashboard({
           <ReportsSection projectId={project.id} initialReports={reports} />
         </div>
       )}
+      </div>
     </div>
   );
 }

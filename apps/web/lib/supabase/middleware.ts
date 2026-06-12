@@ -1,7 +1,7 @@
 import { createServerClient, type SetAllCookies } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/signup"];
+const PUBLIC_ROUTES = ["/", "/login", "/signup", "/~offline"];
 const PUBLIC_PREFIXES = ["/client"];
 const AUTH_ROUTES = ["/login", "/signup"];
 
@@ -53,30 +53,6 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/projects";
     return NextResponse.redirect(url);
-  }
-
-  if (user && (isProtected || isOnboarding)) {
-    const { data: membership } = await supabase
-      .from("user_organizations")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .limit(1)
-      .maybeSingle();
-
-    const hasOrganization = Boolean(membership);
-
-    if (!hasOrganization && !isOnboarding) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/onboarding";
-      return NextResponse.redirect(url);
-    }
-
-    if (hasOrganization && isOnboarding) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/projects";
-      return NextResponse.redirect(url);
-    }
   }
 
   if (!user && isOnboarding) {

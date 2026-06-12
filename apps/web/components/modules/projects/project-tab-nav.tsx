@@ -41,10 +41,10 @@ export function ProjectTabNav({
 }: ProjectTabNavProps) {
   return (
     <nav
-      className="sticky top-0 z-10 -mx-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:-mx-6 md:px-6"
+      className="sticky top-0 z-10 -mx-3 border-b bg-background/95 px-1 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:-mx-6 md:px-6"
       aria-label="Secciones del proyecto"
     >
-      <div className="flex gap-1 overflow-x-auto pb-px scrollbar-none">
+      <div className="flex gap-0.5 overflow-x-auto pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {PROJECT_TABS.map((tab) => {
           const Icon = tab.icon as LucideIcon;
           const isActive = activeTab === tab.id;
@@ -57,15 +57,18 @@ export function ProjectTabNav({
               type="button"
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors",
+                "flex shrink-0 flex-col items-center gap-0.5 border-b-2 px-2.5 py-2 text-[11px] font-medium transition-colors sm:flex-row sm:gap-2 sm:px-3 sm:py-3 sm:text-sm",
                 isActive
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:border-muted-foreground/30 hover:text-foreground",
               )}
               aria-current={isActive ? "page" : undefined}
+              aria-label={tab.label}
             >
-              <Icon className="h-4 w-4" />
-              {tab.label}
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="max-w-[4.5rem] truncate sm:max-w-none">
+                {tab.label}
+              </span>
               {showBadge && (
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-destructive-foreground">
                   {materialAlertCount}
@@ -86,7 +89,7 @@ interface FinanceSubNavProps {
 
 export function FinanceSubNav({ active, onChange }: FinanceSubNavProps) {
   return (
-    <div className="flex gap-2 border-b pb-4">
+    <div className="-mx-1 flex gap-2 overflow-x-auto border-b pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {(
         [
           { id: "pagos" as const, label: "Pagos del cliente" },
@@ -98,7 +101,7 @@ export function FinanceSubNav({ active, onChange }: FinanceSubNavProps) {
           type="button"
           onClick={() => onChange(item.id)}
           className={cn(
-            "rounded-md px-4 py-2 text-sm font-medium transition-colors",
+            "shrink-0 rounded-md px-3 py-2 text-sm font-medium transition-colors sm:px-4",
             active === item.id
               ? "bg-primary text-primary-foreground"
               : "bg-muted text-muted-foreground hover:text-foreground",

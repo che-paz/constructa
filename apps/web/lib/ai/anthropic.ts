@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-export const AI_MODEL = "claude-sonnet-4-20250514";
+/** Reemplazo de claude-sonnet-4-20250514 (retirado jun 2026). Override: ANTHROPIC_MODEL */
+export const AI_MODEL =
+  process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 export const AI_MAX_TOKENS = 1024;
 export const AI_TIMEOUT_MS = 30_000;
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Payment } from "@constructa/types";
 import { formatGtq, paymentMethodLabel } from "@constructa/utils";
+import { SignedStorageLink } from "@/components/shared/signed-storage-link";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -72,15 +73,11 @@ export function PaymentList({ payments }: PaymentListProps) {
               {payment.reference_number ?? "—"}
             </TableCell>
             <TableCell>
-              {payment.receipt_signed_url ? (
-                <a
-                  href={payment.receipt_signed_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline"
-                >
-                  Ver
-                </a>
+              {payment.receipt_url ? (
+                <SignedStorageLink
+                  bucket="payment-receipts"
+                  path={payment.receipt_url}
+                />
               ) : (
                 <span className="text-muted-foreground">—</span>
               )}

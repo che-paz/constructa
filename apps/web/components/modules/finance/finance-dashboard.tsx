@@ -69,10 +69,10 @@ export function FinanceDashboardView({
   const { totals } = dashboard;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold tracking-tight md:text-2xl">
             Centro Financiero
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -80,17 +80,22 @@ export function FinanceDashboardView({
             cobrar
           </p>
         </div>
-        <Button type="button" variant="outline" onClick={exportCsv}>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full shrink-0 sm:w-auto"
+          onClick={exportCsv}
+        >
           <Download className="mr-2 h-4 w-4" />
           Exportar CSV
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5 lg:gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Presupuesto total</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-lg md:text-2xl">
               {formatGtq(totals.total_budget)}
             </CardTitle>
           </CardHeader>
@@ -98,7 +103,7 @@ export function FinanceDashboardView({
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Cobrado</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-lg md:text-2xl">
               {formatGtq(totals.total_received)}
             </CardTitle>
           </CardHeader>
@@ -106,7 +111,7 @@ export function FinanceDashboardView({
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Gastado</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-lg md:text-2xl">
               {formatGtq(totals.total_spent)}
             </CardTitle>
           </CardHeader>
@@ -114,7 +119,7 @@ export function FinanceDashboardView({
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Saldo presupuesto</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-lg md:text-2xl">
               {formatGtq(totals.total_remaining_budget)}
             </CardTitle>
           </CardHeader>
@@ -122,7 +127,7 @@ export function FinanceDashboardView({
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Cuentas por cobrar</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-lg md:text-2xl">
               {formatGtq(totals.total_pending_receivable)}
             </CardTitle>
           </CardHeader>

@@ -1,4 +1,7 @@
+"use client";
+
 import type { MaterialEntry } from "@constructa/types";
+import { SignedStorageLink } from "@/components/shared/signed-storage-link";
 import { formatGtq, materialEntryTypeLabel } from "@constructa/utils";
 import {
   Table,
@@ -59,15 +62,11 @@ export function MaterialInventoryTable({
               {entry.total_cost != null ? formatGtq(entry.total_cost) : "—"}
             </TableCell>
             <TableCell className="text-sm">
-              {entry.invoice_signed_url ? (
-                <a
-                  href={entry.invoice_signed_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline"
-                >
-                  Ver
-                </a>
+              {entry.invoice_url ? (
+                <SignedStorageLink
+                  bucket="material-invoices"
+                  path={entry.invoice_url}
+                />
               ) : (
                 "—"
               )}
