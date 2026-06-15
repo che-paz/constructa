@@ -74,6 +74,9 @@ importers:
       next:
         specifier: 14.2.35
         version: 14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      qrcode:
+        specifier: ^1.5.4
+        version: 1.5.4
       react:
         specifier: ^18
         version: 18.3.1
@@ -114,9 +117,6 @@ importers:
       postcss:
         specifier: ^8
         version: 8.5.15
-      qrcode:
-        specifier: ^1.5.4
-        version: 1.5.4
       serwist:
         specifier: ^9.5.11
         version: 9.5.11(browserslist@4.28.2)(typescript@5.9.3)
