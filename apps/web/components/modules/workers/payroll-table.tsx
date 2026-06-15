@@ -35,6 +35,8 @@ export function PayrollTable({
 }: PayrollTableProps) {
   const [payroll, setPayroll] = useState(initialPayroll);
   const [loading, setLoading] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [closeError, setCloseError] = useState<string | null>(null);
   const currentWeekStart = getWeekStart();
 
   useEffect(() => {
@@ -62,6 +64,42 @@ export function PayrollTable({
     void handleWeekChange(d.toISOString().slice(0, 10));
   }
 
+  async function handleCloseWeek() {
+    if (
+      !confirm(
+        "¿Cerrar esta semana? Se marcarán como pagados los días pendientes y se descontarán los adelantos.",
+      )
+    ) {
+      return;
+    }
+
+    setClosing(true);
+    setCloseError(null);
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/payroll/close`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ week_start: payroll.week_start }),
+      });
+
+      const data: PayrollSummary & { error?: string } = await res.json();
+
+      if (!res.ok) {
+        setCloseError(
+          typeof data.error === "string"
+            ? data.error
+            : "No se pudo cerrar la semana",
+        );
+        return;
+      }
+
+      setPayroll(data);
+    } finally {
+      setClosing(false);
+    }
+  }
+
   function workerRateLabel(row: PayrollSummary["rows"][number]) {
     if (row.payment_type === "contract") {
       return `${workerSpecialtyLabel(row.specialty)} · Por contrato`;
@@ -76,10 +114,23 @@ export function PayrollTable({
           <div>
             <CardTitle className="text-base">Planilla semanal</CardTitle>
             <CardDescription>
-              Cierre de semana con adelantos y pagos del día
+              Cierre de semana con adelantos, saldo anterior y pagos del día
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-end gap-2">
+            {!payroll.is_week_closed && payroll.rows.length > 0 && (
+              <Button
+                type="button"
+                size="sm"
+                disabled={loading || closing}
+                onClick={() => void handleCloseWeek()}
+              >
+                {closing ? "Cerrando…" : "Cerrar semana"}
+              </Button>
+            )}
+            {payroll.is_week_closed && (
+              <Badge variant="secondary">Semana cerrada</Badge>
+            )}
             <Button
               type="button"
               variant="outline"
@@ -115,11 +166,16 @@ export function PayrollTable({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {closeError && (
+          <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {closeError}
+          </p>
+        )}
         {loading ? (
           <p className="text-sm text-muted-foreground">Cargando planilla…</p>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
               <div className="rounded-md border px-3 py-2">
                 <p className="text-xs text-muted-foreground">Trabajadores</p>
                 <p className="text-lg font-semibold">{payroll.workers_count}</p>
@@ -128,6 +184,12 @@ export function PayrollTable({
                 <p className="text-xs text-muted-foreground">Bruto semanal</p>
                 <p className="text-lg font-semibold">
                   {formatGtq(payroll.total_amount)}
+                </p>
+              </div>
+              <div className="rounded-md border px-3 py-2">
+                <p className="text-xs text-muted-foreground">Saldo anterior</p>
+                <p className="text-lg font-semibold text-orange-700">
+                  {formatGtq(payroll.balance_forward_opening)}
                 </p>
               </div>
               <div className="rounded-md border px-3 py-2">
@@ -142,11 +204,16 @@ export function PayrollTable({
                   {formatGtq(payroll.paid_amount)}
                 </p>
               </div>
-              <div className="rounded-md border px-3 py-2 sm:col-span-2 lg:col-span-1">
+              <div className="rounded-md border px-3 py-2">
                 <p className="text-xs text-muted-foreground">Neto al cierre</p>
                 <p className="text-lg font-semibold">
                   {formatGtq(payroll.net_amount)}
                 </p>
+                {payroll.carry_forward > 0 && (
+                  <p className="text-xs text-orange-700">
+                    Saldo próx. semana: {formatGtq(payroll.carry_forward)}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -174,6 +241,9 @@ export function PayrollTable({
                       ))}
                       <th className="px-3 py-2 text-right font-medium">Horas</th>
                       <th className="px-3 py-2 text-right font-medium">Bruto</th>
+                      <th className="px-3 py-2 text-right font-medium">
+                        Saldo ant.
+                      </th>
                       <th className="px-3 py-2 text-right font-medium">
                         Adelantos
                       </th>
@@ -231,6 +301,11 @@ export function PayrollTable({
                         <td className="px-3 py-2 text-right font-medium">
                           {formatGtq(row.total_amount)}
                         </td>
+                        <td className="px-3 py-2 text-right text-orange-700">
+                          {row.balance_forward_opening > 0
+                            ? formatGtq(row.balance_forward_opening)
+                            : "—"}
+                        </td>
                         <td className="px-3 py-2 text-right text-amber-700">
                           {row.advances_amount > 0
                             ? formatGtq(row.advances_amount)
@@ -240,6 +315,12 @@ export function PayrollTable({
                           {row.net_amount > 0 ? (
                             <span className="font-medium">
                               {formatGtq(row.net_amount)}
+                            </span>
+                          ) : payroll.is_week_closed ? (
+                            <span className="text-green-700">Pagado</span>
+                          ) : row.carry_forward > 0 ? (
+                            <span className="text-xs text-orange-700">
+                              Saldo {formatGtq(row.carry_forward)}
                             </span>
                           ) : (
                             <span className="text-green-700">Pagado</span>
@@ -258,6 +339,9 @@ export function PayrollTable({
                       </td>
                       <td className="px-3 py-2 text-right">
                         {formatGtq(payroll.total_amount)}
+                      </td>
+                      <td className="px-3 py-2 text-right text-orange-700">
+                        {formatGtq(payroll.balance_forward_opening)}
                       </td>
                       <td className="px-3 py-2 text-right text-amber-700">
                         {formatGtq(payroll.advances_amount)}

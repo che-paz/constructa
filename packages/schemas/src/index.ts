@@ -14,6 +14,41 @@ export const OrganizationPlanSchema = z.enum([
   "empresa",
 ]);
 
+export const OrgStaffRoleSchema = z.enum([
+  "constructor",
+  "supervisor",
+  "oficina",
+  "contador",
+]);
+
+export const UpdateOrganizationSchema = z.object({
+  name: z.string().min(2, "Nombre requerido").max(100).optional(),
+  phone: z.string().max(30).optional().nullable(),
+  email: z.string().email("Correo inválido").optional().nullable(),
+  logo_url: z.string().max(500).optional().nullable(),
+});
+
+export const ChangePasswordSchema = z
+  .object({
+    current_password: z.string().min(6, "Mínimo 6 caracteres"),
+    new_password: z.string().min(6, "Mínimo 6 caracteres"),
+    confirm_password: z.string().min(6, "Mínimo 6 caracteres"),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirm_password"],
+  });
+
+export const InviteMemberSchema = z.object({
+  email: z.string().email("Correo inválido"),
+  role: OrgStaffRoleSchema.default("supervisor"),
+});
+
+export const UpdateMemberSchema = z.object({
+  role: OrgStaffRoleSchema.optional(),
+  is_active: z.boolean().optional(),
+});
+
 export const ProjectStatusSchema = z.enum([
   "active",
   "paused",
@@ -131,11 +166,27 @@ export const CreateMaterialEntrySchema = z.object({
   notes: z.string().max(500).optional().nullable(),
 });
 
+export const UpdateMaterialEntrySchema = z.object({
+  stage_id: z.string().uuid().optional().nullable(),
+  entry_type: MaterialEntryTypeSchema.optional(),
+  quantity: z.number().positive("La cantidad debe ser mayor a cero").optional(),
+  unit_price: z.number().nonnegative().optional().nullable(),
+  invoice_number: z.string().max(100).optional().nullable(),
+  notes: z.string().max(500).optional().nullable(),
+});
+
 export const CreateMaterialBudgetSchema = z.object({
   project_id: z.string().uuid(),
   stage_id: z.string().uuid(),
   material_id: z.string().uuid(),
   expected_quantity: z.number().positive("La cantidad esperada debe ser mayor a cero"),
+});
+
+export const UpdateMaterialBudgetSchema = z.object({
+  expected_quantity: z
+    .number()
+    .positive("La cantidad esperada debe ser mayor a cero")
+    .optional(),
 });
 
 export const WorkerSpecialtySchema = z.enum([
@@ -213,6 +264,19 @@ export const CreateAttendanceSchema = z.object({
   is_paid: z.boolean().optional(),
 });
 
+export const UpdateAttendanceSchema = z.object({
+  check_in: z.string().datetime({ offset: true }).optional().nullable(),
+  check_out: z.string().datetime({ offset: true }).optional().nullable(),
+  attendance_type: AttendanceTypeSchema.optional(),
+  amount_paid: z
+    .number()
+    .nonnegative("El monto debe ser cero o mayor")
+    .optional()
+    .nullable(),
+  notes: z.string().max(500).optional().nullable(),
+  is_paid: z.boolean().optional(),
+});
+
 export const CreateWorkerAdvanceSchema = z.object({
   worker_id: z.string().uuid(),
   amount: z.number().positive("El adelanto debe ser mayor a cero"),
@@ -222,8 +286,15 @@ export const CreateWorkerAdvanceSchema = z.object({
 });
 
 export const UpdateWorkerAdvanceSchema = z.object({
-  is_deducted: z.boolean().optional(),
+  amount: z.number().positive("El adelanto debe ser mayor a cero").optional(),
+  advance_date: z.string().date("Fecha inválida").optional(),
   notes: z.string().max(500).optional().nullable(),
+  is_deducted: z.boolean().optional(),
+});
+
+export const ClosePayrollSchema = z.object({
+  week_start: z.string().date("Semana inválida"),
+  worker_ids: z.array(z.string().uuid()).optional(),
 });
 
 export type LoginInput = z.infer<typeof LoginSchema>;
@@ -236,12 +307,16 @@ export type UpdateStageInput = z.infer<typeof UpdateStageSchema>;
 export type CreateMaterialCatalogInput = z.infer<typeof CreateMaterialCatalogSchema>;
 export type UpdateMaterialCatalogInput = z.infer<typeof UpdateMaterialCatalogSchema>;
 export type CreateMaterialEntryInput = z.infer<typeof CreateMaterialEntrySchema>;
+export type UpdateMaterialEntryInput = z.infer<typeof UpdateMaterialEntrySchema>;
 export type CreateMaterialBudgetInput = z.infer<typeof CreateMaterialBudgetSchema>;
+export type UpdateMaterialBudgetInput = z.infer<typeof UpdateMaterialBudgetSchema>;
 export type CreateWorkerInput = z.infer<typeof CreateWorkerSchema>;
 export type UpdateWorkerInput = z.infer<typeof UpdateWorkerSchema>;
 export type CreateAttendanceInput = z.infer<typeof CreateAttendanceSchema>;
+export type UpdateAttendanceInput = z.infer<typeof UpdateAttendanceSchema>;
 export type CreateWorkerAdvanceInput = z.infer<typeof CreateWorkerAdvanceSchema>;
 export type UpdateWorkerAdvanceInput = z.infer<typeof UpdateWorkerAdvanceSchema>;
+export type ClosePayrollInput = z.infer<typeof ClosePayrollSchema>;
 
 export const ExpenseCategorySchema = z.enum([
   "materiales",

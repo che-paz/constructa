@@ -1025,6 +1025,76 @@ describe("attendance and payroll utils (unit)", () => {
     expect(summary.advances_amount).toBe(100);
     expect(summary.net_amount).toBe(400);
   });
+
+  it("deducts opening balance from payroll net amount", async () => {
+    const { buildPayrollSummary } = await import("@/lib/workers/payroll");
+
+    const summary = buildPayrollSummary(
+      "project-1",
+      [
+        {
+          id: "w1",
+          organization_id: "org",
+          name: "Luis",
+          dpi: null,
+          phone: null,
+          specialty: "albanil",
+          payment_type: "daily",
+          daily_rate: 200,
+          is_active: true,
+          notes: null,
+          created_by: "u1",
+          created_at: "",
+          updated_at: "",
+          deleted_at: null,
+        },
+      ],
+      [
+        {
+          id: "a1",
+          organization_id: "org",
+          project_id: "project-1",
+          worker_id: "w1",
+          work_date: "2025-06-03",
+          check_in: null,
+          check_out: null,
+          hours_worked: 8,
+          attendance_type: "full",
+          check_in_method: "manual",
+          amount_paid: 200,
+          is_paid: false,
+          notes: null,
+          reported_via: "web",
+          created_by: "u1",
+          created_at: "",
+        },
+      ],
+      "2025-06-02",
+      [],
+      [
+        {
+          id: "bal1",
+          organization_id: "org",
+          project_id: "project-1",
+          worker_id: "w1",
+          balance_forward: 150,
+          updated_at: "",
+        },
+      ],
+    );
+
+    expect(summary.rows[0]?.balance_forward_opening).toBe(150);
+    expect(summary.rows[0]?.net_amount).toBe(50);
+  });
+
+  it("computes carry forward when advances exceed gross pay", async () => {
+    const { computePayrollAmounts } = await import("@/lib/workers/payroll");
+
+    const result = computePayrollAmounts(400, 600, 0, 0);
+
+    expect(result.net_amount).toBe(0);
+    expect(result.carry_forward).toBe(200);
+  });
 });
 
 describe("financial aggregation (unit)", () => {

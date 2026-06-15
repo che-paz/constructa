@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { PayrollSummary, Worker, WorkerAdvance, WorkerAttendance } from "@constructa/types";
+import type { PayrollSummary, Worker, WorkerAdvance, WorkerAttendance, WorkerPayrollBalance } from "@constructa/types";
 import { getWeekStart } from "@constructa/utils";
 import { getAuthContext } from "@/lib/auth/get-organization";
 import { buildPayrollSummary } from "@/lib/workers/payroll";
@@ -35,7 +35,7 @@ export async function GET(request: Request, { params }: RouteContext) {
 
     const weekStart = getWeekStart(week);
 
-    const [{ data: workers }, { data: attendance }, { data: advances }] =
+    const [{ data: workers }, { data: attendance }, { data: advances }, { data: balances }] =
       await Promise.all([
       supabase
         .from("workers")
@@ -55,6 +55,11 @@ export async function GET(request: Request, { params }: RouteContext) {
         .eq("project_id", params.id)
         .eq("organization_id", auth.organization.id)
         .eq("week_start", weekStart),
+      supabase
+        .from("worker_payroll_balances")
+        .select("*")
+        .eq("project_id", params.id)
+        .eq("organization_id", auth.organization.id),
     ]);
 
     const summary: PayrollSummary = buildPayrollSummary(
@@ -63,6 +68,7 @@ export async function GET(request: Request, { params }: RouteContext) {
       (attendance ?? []) as WorkerAttendance[],
       week,
       (advances ?? []) as WorkerAdvance[],
+      (balances ?? []) as WorkerPayrollBalance[],
     );
 
     return NextResponse.json(summary);

@@ -39,6 +39,8 @@ export function MaterialEntryForm({
   const [notes, setNotes] = useState("");
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
 
+  const isPurchase = entryType === "purchase";
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -50,7 +52,7 @@ export function MaterialEntryForm({
 
     let invoiceUrl: string | null = null;
 
-    if (invoiceFile) {
+    if (invoiceFile && isPurchase) {
       const formData = new FormData();
       formData.append("file", invoiceFile);
       formData.append("project_id", projectId);
@@ -77,9 +79,9 @@ export function MaterialEntryForm({
       material_id: materialId,
       entry_type: entryType,
       quantity: Number(quantity),
-      unit_price: unitPrice ? Number(unitPrice) : null,
-      invoice_number: invoiceNumber || null,
-      invoice_url: invoiceUrl,
+      unit_price: isPurchase && unitPrice ? Number(unitPrice) : null,
+      invoice_number: isPurchase && invoiceNumber ? invoiceNumber : null,
+      invoice_url: isPurchase ? invoiceUrl : null,
       notes: notes || null,
     };
 
@@ -155,7 +157,15 @@ export function MaterialEntryForm({
           <Label htmlFor="entryType">Tipo de movimiento *</Label>
           <Select
             value={entryType}
-            onValueChange={(v) => setEntryType(v as MaterialEntryType)}
+            onValueChange={(v) => {
+              const next = v as MaterialEntryType;
+              setEntryType(next);
+              if (next !== "purchase") {
+                setUnitPrice("");
+                setInvoiceNumber("");
+                setInvoiceFile(null);
+              }
+            }}
           >
             <SelectTrigger id="entryType">
               <SelectValue />
@@ -208,36 +218,40 @@ export function MaterialEntryForm({
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="unitPrice">Precio unitario (GTQ)</Label>
-          <Input
-            id="unitPrice"
-            type="number"
-            min="0"
-            step="0.01"
-            value={unitPrice}
-            onChange={(e) => setUnitPrice(e.target.value)}
-          />
-        </div>
+        {isPurchase && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="unitPrice">Precio unitario (GTQ)</Label>
+              <Input
+                id="unitPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                value={unitPrice}
+                onChange={(e) => setUnitPrice(e.target.value)}
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="invoiceNumber">No. factura</Label>
-          <Input
-            id="invoiceNumber"
-            value={invoiceNumber}
-            onChange={(e) => setInvoiceNumber(e.target.value)}
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="invoiceNumber">No. factura</Label>
+              <Input
+                id="invoiceNumber"
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value)}
+              />
+            </div>
 
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="invoice">Factura (JPG, PNG, PDF — máx. 5 MB)</Label>
-          <Input
-            id="invoice"
-            type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            onChange={(e) => setInvoiceFile(e.target.files?.[0] ?? null)}
-          />
-        </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="invoice">Factura (JPG, PNG, PDF — máx. 5 MB)</Label>
+              <Input
+                id="invoice"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                onChange={(e) => setInvoiceFile(e.target.files?.[0] ?? null)}
+              />
+            </div>
+          </>
+        )}
 
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="entryNotes">Notas</Label>

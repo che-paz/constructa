@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Bot, Building2, Wallet } from "lucide-react";
+import { Bot, Building2, Package, Users, Wallet } from "lucide-react";
 
 export interface DashboardNavItem {
   href: string;
@@ -14,6 +14,18 @@ export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
     label: "Proyectos",
     shortLabel: "Obras",
     icon: Building2,
+  },
+  {
+    href: "/materials",
+    label: "Materiales",
+    shortLabel: "Materiales",
+    icon: Package,
+  },
+  {
+    href: "/personal",
+    label: "Personal",
+    shortLabel: "Personal",
+    icon: Users,
   },
   {
     href: "/finance",

@@ -42,6 +42,8 @@ export function MaterialBudgetForm({
   const [materialId, setMaterialId] = useState(catalog[0]?.id ?? "");
   const [stageId, setStageId] = useState(stages[0]?.id ?? "");
   const [expectedQty, setExpectedQty] = useState("");
+  const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
+  const [editQty, setEditQty] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -94,6 +96,58 @@ export function MaterialBudgetForm({
     router.refresh();
   }
 
+  function startEditBudget(budgetId: string, qty: number) {
+    setEditingBudgetId(budgetId);
+    setEditQty(String(qty));
+    setError(null);
+  }
+
+  async function handleSaveBudget(budgetId: string) {
+    setLoading(true);
+    setError(null);
+
+    const res = await fetch(`/api/materials/budgets/${budgetId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ expected_quantity: Number(editQty) }),
+    });
+
+    const data: { error?: string } = await res.json();
+    setLoading(false);
+
+    if (!res.ok) {
+      setError(
+        typeof data.error === "string"
+          ? data.error
+          : "No se pudo actualizar el presupuesto",
+      );
+      return;
+    }
+
+    setEditingBudgetId(null);
+    router.refresh();
+  }
+
+  async function handleDeleteBudget(budgetId: string) {
+    if (!confirm("¿Eliminar este presupuesto?")) return;
+
+    setLoading(true);
+    setError(null);
+
+    const res = await fetch(`/api/materials/budgets/${budgetId}`, {
+      method: "DELETE",
+    });
+
+    setLoading(false);
+
+    if (!res.ok) {
+      setError("No se pudo eliminar el presupuesto");
+      return;
+    }
+
+    router.refresh();
+  }
+
   if (catalog.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -122,17 +176,90 @@ export function MaterialBudgetForm({
                 <TableHead>Material</TableHead>
                 <TableHead>Etapa</TableHead>
                 <TableHead className="text-right">Presupuesto</TableHead>
+                <TableHead className="w-[120px]" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {summary.items.map((item) => (
-                <TableRow key={`${item.material_id}-${item.stage_id}`}>
+                <TableRow key={item.budget_id ?? `${item.material_id}-${item.stage_id}`}>
                   <TableCell className="text-sm">{item.material_name}</TableCell>
                   <TableCell className="text-sm">
                     {item.stage_name ?? "—"}
                   </TableCell>
                   <TableCell className="text-right text-sm">
-                    {item.expected_quantity} {item.unit}
+                    {editingBudgetId === item.budget_id ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <Input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          className="h-8 w-24"
+                          value={editQty}
+                          onChange={(e) => setEditQty(e.target.value)}
+                        />
+                        <span>{item.unit}</span>
+                      </div>
+                    ) : (
+                      <>
+                        {item.expected_quantity} {item.unit}
+                      </>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.budget_id && (
+                      <div className="flex gap-1">
+                        {editingBudgetId === item.budget_id ? (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              disabled={loading}
+                              onClick={() => void handleSaveBudget(item.budget_id!)}
+                            >
+                              OK
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setEditingBudgetId(null)}
+                            >
+                              Cancelar
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              disabled={loading}
+                              onClick={() =>
+                                startEditBudget(
+                                  item.budget_id!,
+                                  item.expected_quantity,
+                                )
+                              }
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              disabled={loading}
+                              onClick={() =>
+                                void handleDeleteBudget(item.budget_id!)
+                              }
+                            >
+                              Eliminar
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

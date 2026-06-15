@@ -60,6 +60,13 @@ export function WorkersSection({
         actionLabel="Agregar trabajador"
         collapsedHint={workersHint}
       >
+        <p className="mb-3 text-sm text-muted-foreground">
+          Gestiona tu equipo completo en{" "}
+          <a href="/personal" className="text-primary underline">
+            Personal
+          </a>
+          .
+        </p>
         <WorkerForm />
       </CollapsibleFormSection>
 

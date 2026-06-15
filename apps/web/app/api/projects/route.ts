@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { CreateProjectSchema } from "@constructa/schemas";
 import { generateClientToken } from "@constructa/utils";
 import { getAuthContext } from "@/lib/auth/get-organization";
+import { requireWrite } from "@/lib/auth/require-permission";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
@@ -51,6 +52,9 @@ export async function POST(request: Request) {
     if (!auth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const denied = requireWrite(auth);
+    if (denied) return denied;
 
     const body: unknown = await request.json();
     const parsed = CreateProjectSchema.safeParse(body);

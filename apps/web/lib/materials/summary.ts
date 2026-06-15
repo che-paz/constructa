@@ -4,6 +4,7 @@ import { calculateMaterialDeviation } from "@constructa/utils";
 const DEVIATION_ALERT_THRESHOLD = 15;
 
 interface BudgetRow {
+  id?: string;
   stage_id: string;
   material_id: string;
   expected_quantity: number;
@@ -50,6 +51,7 @@ export function buildMaterialSummary(
     ]);
     const expected = Number(b.expected_quantity);
     return {
+      budget_id: b.id,
       material_id: b.material_id,
       material_name: b.material?.name ?? "Material",
       unit: b.material?.unit ?? "",

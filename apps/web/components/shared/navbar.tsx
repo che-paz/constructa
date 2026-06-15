@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu, User } from "lucide-react";
+import { LogOut, Menu, Settings, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { MobileNavDrawer } from "@/components/shared/mobile-nav-drawer";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,12 @@ export function Navbar({ userEmail, organizationName }: NavbarProps) {
               </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                Configuración
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
               Cerrar sesión

@@ -57,6 +57,13 @@ export function MaterialsSection({
         actionLabel="Gestionar catálogo"
         collapsedHint={catalogHint}
       >
+        <p className="mb-3 text-sm text-muted-foreground">
+          Administra el catálogo completo en{" "}
+          <a href="/materials" className="text-primary underline">
+            Materiales
+          </a>
+          .
+        </p>
         <CatalogForm />
       </CollapsibleFormSection>
 
@@ -96,7 +103,7 @@ export function MaterialsSection({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <MaterialInventoryTable entries={entries} />
+          <MaterialInventoryTable entries={entries} stages={stages} />
         </CardContent>
       </Card>
     </div>

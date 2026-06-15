@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { CreateExpenseSchema } from "@constructa/schemas";
 import type { Expense } from "@constructa/types";
 import { getAuthContext } from "@/lib/auth/get-organization";
+import { requireFinanceWrite } from "@/lib/auth/require-permission";
 import { getProjectForOrg } from "@/lib/projects/get-project-for-org";
 import { createClient } from "@/lib/supabase/server";
 
@@ -52,6 +53,9 @@ export async function POST(request: Request, { params }: RouteContext) {
     if (!auth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const denied = requireFinanceWrite(auth);
+    if (denied) return denied;
 
     const { data: project, error: projectError } = await getProjectForOrg(
       params.id,

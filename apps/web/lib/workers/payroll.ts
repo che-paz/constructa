@@ -5,8 +5,33 @@ import type {
   Worker,
   WorkerAdvance,
   WorkerAttendance,
+  WorkerPayrollBalance,
 } from "@constructa/types";
 import { calculateAttendanceAmount, getWeekDates, getWeekEnd, getWeekStart } from "@constructa/utils";
+
+export function computePayrollAmounts(
+  totalAmount: number,
+  advancesAmount: number,
+  paidAmount: number,
+  balanceForwardOpening: number,
+): {
+  net_amount: number;
+  carry_forward: number;
+} {
+  const rawNet =
+    Math.round(
+      (totalAmount - advancesAmount - paidAmount - balanceForwardOpening) * 100,
+    ) / 100;
+  const carryForward =
+    Math.round(
+      (balanceForwardOpening + advancesAmount + paidAmount - totalAmount) * 100,
+    ) / 100;
+
+  return {
+    net_amount: Math.max(rawNet, 0),
+    carry_forward: Math.max(carryForward, 0),
+  };
+}
 
 export function buildPayrollSummary(
   projectId: string,
@@ -14,6 +39,7 @@ export function buildPayrollSummary(
   attendance: WorkerAttendance[],
   weekParam?: string,
   advances: WorkerAdvance[] = [],
+  balances: WorkerPayrollBalance[] = [],
 ): PayrollSummary {
   const weekStart = getWeekStart(weekParam);
   const weekEnd = getWeekEnd(weekStart);
@@ -27,6 +53,10 @@ export function buildPayrollSummary(
     (a) => a.week_start === weekStart && !a.is_deducted,
   );
 
+  const balanceByWorker = new Map(
+    balances.map((b) => [b.worker_id, Number(b.balance_forward ?? 0)]),
+  );
+
   const activeWorkers = workers.filter(
     (w) => w.is_active && w.deleted_at == null,
   );
@@ -38,6 +68,7 @@ export function buildPayrollSummary(
 
   const rows: PayrollWorkerRow[] = workersForPayroll.map((worker) => {
     const dailyRate = Number(worker.daily_rate ?? 0);
+    const balanceForwardOpening = balanceByWorker.get(worker.id) ?? 0;
     const workerRecords = weekAttendance.filter(
       (a) => a.worker_id === worker.id,
     );
@@ -77,8 +108,12 @@ export function buildPayrollSummary(
       .reduce((s, a) => s + Number(a.amount), 0);
     const unpaidAmount =
       Math.round((totalAmount - paidAmount) * 100) / 100;
-    const netAmount =
-      Math.round((totalAmount - advancesAmount - paidAmount) * 100) / 100;
+    const { net_amount, carry_forward } = computePayrollAmounts(
+      totalAmount,
+      advancesAmount,
+      paidAmount,
+      balanceForwardOpening,
+    );
 
     return {
       worker_id: worker.id,
@@ -89,19 +124,32 @@ export function buildPayrollSummary(
       days,
       total_hours: Math.round(totalHours * 100) / 100,
       total_amount: Math.round(totalAmount * 100) / 100,
+      balance_forward_opening: Math.round(balanceForwardOpening * 100) / 100,
       advances_amount: Math.round(advancesAmount * 100) / 100,
       paid_amount: Math.round(paidAmount * 100) / 100,
       unpaid_amount: unpaidAmount,
-      net_amount: netAmount,
+      net_amount,
+      carry_forward,
     };
   });
 
   const totalHours = rows.reduce((s, r) => s + r.total_hours, 0);
   const totalAmount = rows.reduce((s, r) => s + r.total_amount, 0);
+  const balanceForwardOpening = rows.reduce(
+    (s, r) => s + r.balance_forward_opening,
+    0,
+  );
   const advancesAmount = rows.reduce((s, r) => s + r.advances_amount, 0);
   const paidAmount = rows.reduce((s, r) => s + r.paid_amount, 0);
   const unpaidAmount = rows.reduce((s, r) => s + r.unpaid_amount, 0);
   const netAmount = rows.reduce((s, r) => s + r.net_amount, 0);
+  const carryForward = rows.reduce((s, r) => s + r.carry_forward, 0);
+
+  const hasAttendance = weekAttendance.length > 0;
+  const allAttendancePaid =
+    hasAttendance && weekAttendance.every((a) => a.is_paid);
+  const allAdvancesDeducted =
+    weekAdvances.length === 0 || weekAdvances.every((a) => a.is_deducted);
 
   return {
     project_id: projectId,
@@ -110,11 +158,14 @@ export function buildPayrollSummary(
     rows,
     total_hours: Math.round(totalHours * 100) / 100,
     total_amount: Math.round(totalAmount * 100) / 100,
+    balance_forward_opening: Math.round(balanceForwardOpening * 100) / 100,
     advances_amount: Math.round(advancesAmount * 100) / 100,
     paid_amount: Math.round(paidAmount * 100) / 100,
     unpaid_amount: Math.round(unpaidAmount * 100) / 100,
     net_amount: Math.round(netAmount * 100) / 100,
+    carry_forward: Math.round(carryForward * 100) / 100,
     workers_count: rows.length,
+    is_week_closed: hasAttendance && allAttendancePaid && allAdvancesDeducted,
   };
 }
 

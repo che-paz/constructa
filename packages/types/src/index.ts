@@ -16,6 +16,12 @@ export interface Organization {
   plan: OrganizationPlan;
   max_projects: number;
   max_users: number;
+  phone?: string | null;
+  email?: string | null;
+  logo_url?: string | null;
+  settings?: Record<string, unknown>;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface UserOrganization {
@@ -25,6 +31,16 @@ export interface UserOrganization {
   role: UserRole;
   is_active: boolean;
   organization?: Organization;
+}
+
+export interface OrganizationMember {
+  id: string;
+  user_id: string;
+  organization_id: string;
+  role: UserRole;
+  is_active: boolean;
+  email: string;
+  created_at: string;
 }
 
 export interface Project {
@@ -211,6 +227,7 @@ export interface MaterialEntry {
 }
 
 export interface MaterialSummaryItem {
+  budget_id?: string;
   material_id: string;
   material_name: string;
   unit: string;
@@ -229,6 +246,20 @@ export interface MaterialSummary {
   items: MaterialSummaryItem[];
   total_expected_cost: number;
   total_actual_cost: number;
+}
+
+export interface StageMaterialBudget {
+  id: string;
+  organization_id: string;
+  project_id: string;
+  stage_id: string;
+  material_id: string;
+  expected_quantity: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  stage?: { name: string } | null;
+  material?: { name: string; unit: string } | null;
 }
 
 export interface MaterialAlert {
@@ -286,6 +317,15 @@ export interface WorkerAdvance {
   worker?: Worker;
 }
 
+export interface WorkerPayrollBalance {
+  id: string;
+  organization_id: string;
+  project_id: string;
+  worker_id: string;
+  balance_forward: number;
+  updated_at: string;
+}
+
 export type AttendanceType = "full" | "half" | "absent" | "overtime";
 
 export type CheckInMethod = "manual" | "qr" | "gps" | "face";
@@ -327,10 +367,12 @@ export interface PayrollWorkerRow {
   days: PayrollDayEntry[];
   total_hours: number;
   total_amount: number;
+  balance_forward_opening: number;
   advances_amount: number;
   paid_amount: number;
   unpaid_amount: number;
   net_amount: number;
+  carry_forward: number;
 }
 
 export interface PayrollSummary {
@@ -340,11 +382,14 @@ export interface PayrollSummary {
   rows: PayrollWorkerRow[];
   total_hours: number;
   total_amount: number;
+  balance_forward_opening: number;
   advances_amount: number;
   paid_amount: number;
   unpaid_amount: number;
   net_amount: number;
+  carry_forward: number;
   workers_count: number;
+  is_week_closed: boolean;
 }
 
 export interface ProjectFinancialBreakdown {

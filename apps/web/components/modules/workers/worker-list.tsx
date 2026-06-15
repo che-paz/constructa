@@ -25,6 +25,8 @@ export function WorkerList({
 }: WorkerListProps) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingWorkerId, setEditingWorkerId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editRate, setEditRate] = useState("");
@@ -72,6 +74,38 @@ export function WorkerList({
     router.refresh();
   }
 
+  function startEditWorker(worker: Worker) {
+    setEditingWorkerId(worker.id);
+    setEditName(worker.name);
+    setError(null);
+  }
+
+  async function handleSaveWorker(workerId: string) {
+    if (!editName.trim()) {
+      setError("El nombre es requerido");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const res = await fetch(`/api/workers/${workerId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: editName.trim() }),
+    });
+
+    if (!res.ok) {
+      setError("No se pudo actualizar el trabajador");
+      setLoading(false);
+      return;
+    }
+
+    setEditingWorkerId(null);
+    setLoading(false);
+    router.refresh();
+  }
+
   if (workers.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -113,17 +147,25 @@ export function WorkerList({
                   }`}
                 >
                   <td className="px-3 py-2">
-                    <button
-                      type="button"
-                      className="text-left font-medium hover:underline"
-                      onClick={() =>
-                        onSelectWorker(
-                          selectedWorkerId === worker.id ? null : worker.id,
-                        )
-                      }
-                    >
-                      {worker.name}
-                    </button>
+                    {editingWorkerId === worker.id ? (
+                      <Input
+                        className="h-8"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        className="text-left font-medium hover:underline"
+                        onClick={() =>
+                          onSelectWorker(
+                            selectedWorkerId === worker.id ? null : worker.id,
+                          )
+                        }
+                      >
+                        {worker.name}
+                      </button>
+                    )}
                     {worker.phone && (
                       <p className="text-xs text-muted-foreground">
                         {worker.phone}
@@ -184,15 +226,50 @@ export function WorkerList({
                     </Badge>
                   </td>
                   <td className="px-3 py-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      disabled={loading}
-                      onClick={() => handleToggleActive(worker)}
-                    >
-                      {worker.is_active ? "Desactivar" : "Activar"}
-                    </Button>
+                    <div className="flex flex-wrap gap-1">
+                      {editingWorkerId === worker.id ? (
+                        <>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            disabled={loading}
+                            onClick={() => void handleSaveWorker(worker.id)}
+                          >
+                            OK
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setEditingWorkerId(null)}
+                          >
+                            Cancelar
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={loading}
+                            onClick={() => startEditWorker(worker)}
+                          >
+                            Editar
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={loading}
+                            onClick={() => handleToggleActive(worker)}
+                          >
+                            {worker.is_active ? "Desactivar" : "Activar"}
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

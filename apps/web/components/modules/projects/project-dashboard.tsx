@@ -29,6 +29,7 @@ import { PaymentsSection } from "@/components/modules/payments/payments-section"
 import type { PaymentWithReceiptUrl } from "@/components/modules/payments/payment-list";
 import { StagesSection } from "@/components/modules/schedule/stages-section";
 import { ReportsSection } from "@/components/modules/reports/reports-section";
+import { ClientPortalShare } from "@/components/modules/client-portal/client-portal-share";
 import { MaterialAlertBanner } from "@/components/modules/materials/material-alert-banner";
 import {
   FinanceSubNav,
@@ -94,7 +95,6 @@ export function ProjectDashboard({
   reports,
   clientPortalUrl,
 }: ProjectDashboardProps) {
-  const [copied, setCopied] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [financeSection, setFinanceSection] = useState<"pagos" | "gastos">(
     "pagos",
@@ -111,13 +111,6 @@ export function ProjectDashboard({
     .join(" · ");
 
   const budget = Number(project.total_budget ?? 0);
-
-  async function copyPortalLink() {
-    if (!clientPortalUrl) return;
-    await navigator.clipboard.writeText(clientPortalUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -342,14 +335,9 @@ export function ProjectDashboard({
                   los pagos de su obra
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <code className="flex-1 truncate rounded-md bg-muted px-3 py-2 text-xs">
-                  {clientPortalUrl}
-                </code>
+              <CardContent className="space-y-4">
+                <ClientPortalShare url={clientPortalUrl} />
                 <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={copyPortalLink}>
-                    {copied ? "Copiado" : "Copiar enlace"}
-                  </Button>
                   <Button asChild variant="secondary">
                     <Link href={clientPortalUrl} target="_blank">
                       Abrir portal

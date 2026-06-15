@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth/get-organization";
 import { createClient } from "@/lib/supabase/server";
 
-const ALLOWED_BUCKETS = new Set(["payment-receipts", "material-invoices"]);
+const ALLOWED_BUCKETS = new Set([
+  "payment-receipts",
+  "material-invoices",
+  "org-logos",
+]);
 
 export async function GET(request: Request) {
   try {

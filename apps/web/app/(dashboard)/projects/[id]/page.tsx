@@ -15,6 +15,7 @@ import type {
   Worker,
   WorkerAdvance,
   WorkerAttendance,
+  WorkerPayrollBalance,
 } from "@constructa/types";
 import { getAuthContext } from "@/lib/auth/get-organization";
 import { buildProjectFinancialSummary } from "@/lib/finance/summary";
@@ -54,6 +55,7 @@ export default async function ProjectDetailPage({ params }: Props) {
     { data: workers },
     { data: attendance },
     { data: advances },
+    { data: payrollBalances },
     { data: expenseRows },
     { data: allAttendance },
     { data: allMaterials },
@@ -103,6 +105,11 @@ export default async function ProjectDetailPage({ params }: Props) {
       .order("work_date", { ascending: false }),
     supabase
       .from("worker_advances")
+      .select("*")
+      .eq("project_id", params.id)
+      .eq("organization_id", auth.organization.id),
+    supabase
+      .from("worker_payroll_balances")
       .select("*")
       .eq("project_id", params.id)
       .eq("organization_id", auth.organization.id),
@@ -175,6 +182,7 @@ export default async function ProjectDetailPage({ params }: Props) {
     (attendance ?? []) as WorkerAttendance[],
     undefined,
     (advances ?? []) as WorkerAdvance[],
+    (payrollBalances ?? []) as WorkerPayrollBalance[],
   );
 
   const financialSummary: ProjectFinancialSummary = buildProjectFinancialSummary(

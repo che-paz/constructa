@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, X } from "lucide-react";
+import { LayoutDashboard, Settings, X } from "lucide-react";
 import { DASHBOARD_NAV_ITEMS, isNavItemActive } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -86,6 +86,18 @@ export function MobileNavDrawer({
               </Link>
             );
           })}
+          <Link
+            href="/settings"
+            className={cn(
+              "flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors",
+              pathname.startsWith("/settings")
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
+          >
+            <Settings className="h-5 w-5" />
+            Configuración
+          </Link>
         </nav>
       </aside>
     </div>

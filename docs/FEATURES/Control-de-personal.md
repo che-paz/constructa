@@ -17,8 +17,10 @@ Planillas calculadas a mano en cuadernos, sin trazabilidad de jornales, contrato
 - Planilla semanal con totales y estado pagado/pendiente
 - Historial de asistencia por trabajador
 
-## Mejoras beta (Sprint 07 — en curso)
-> Detalle: `FEEDBACK/beta-constructor-2026-06-12.md` · Plan: `archive/sprint-07-beta-feedback.md`
+## Mejoras beta (Sprint 07 — completado + 07b)
+
+> Detalle: `FEEDBACK/beta-constructor-2026-06-12.md`, `FEEDBACK/beta-constructor-2026-06-15.md`  
+> Plan: `archive/sprint-07-beta-feedback.md`, `archive/sprint-07b-payroll-close.md`
 
 ### Formas de pago
 
@@ -38,7 +40,9 @@ Planillas calculadas a mano en cuadernos, sin trazabilidad de jornales, contrato
 - Distinto de los adelantos del **cliente** (Módulo 05).
 
 ### Planilla semanal mejorada
-- Desglose: bruto, adelantos, pagado en el día, **neto a pagar al cierre**.
+- Desglose: bruto, saldo anterior, adelantos, pagado en el día, **neto a pagar al cierre**.
+- Botón **Cerrar semana** marca asistencias pagadas y descuenta adelantos.
+- Saldo arrastrado cuando adelanto > bruto (`worker_payroll_balances`).
 - Visibilidad de quién cobró el mismo día vs. pendiente al viernes/sábado.
 
 ## API Routes
@@ -48,6 +52,7 @@ GET/POST   /api/workers
 PATCH      /api/workers/[id]
 GET/POST   /api/attendance?project=&worker=
 GET        /api/projects/[id]/payroll?week=
+POST       /api/projects/[id]/payroll/close        ← Sprint 07b
 GET/POST   /api/projects/[id]/advances?week=    ← Sprint 07
 PATCH      /api/advances/[id]                    ← Sprint 07
 ```
@@ -56,6 +61,7 @@ PATCH      /api/advances/[id]                    ← Sprint 07
 - `workers` — incluye `payment_type` (`daily` | `contract`)
 - `worker_attendance`
 - `worker_advances` — adelantos descontables (Sprint 07)
+- `worker_payroll_balances` — saldo arrastrado (Sprint 07b)
 
 ## Modelo de datos — workers (post Sprint 07)
 
@@ -76,12 +82,16 @@ workers (
 - [x] Planilla semanal en tabla con selector de semana
 - [x] Historial de pagos/asistencia por trabajador
 
-### Sprint 07 🔲
-- [ ] Especialidad custom (“Otra”)
-- [ ] Forma de pago jornal vs contrato
-- [ ] Monto manual + nota para trabajadores por contrato
-- [ ] Registro y descuento de adelantos en planilla
-- [ ] Resumen semanal: bruto / adelantos / pagado / neto
+### Sprint 07 ✅
+- [x] Especialidad custom (“Otra”)
+- [x] Forma de pago jornal vs contrato
+- [x] Monto manual + nota para trabajadores por contrato
+- [x] Registro y descuento de adelantos en planilla
+- [x] Resumen semanal: bruto / adelantos / pagado / neto
+
+### Sprint 07b ✅
+- [x] Cerrar semana desde planilla
+- [x] Saldo arrastrado por adelanto excesivo
 
 ### Post-MVP
 - [ ] PDF planilla semanal exportable

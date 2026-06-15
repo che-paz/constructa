@@ -28,13 +28,23 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     const { data: existing, error: fetchError } = await supabase
       .from("worker_advances")
-      .select("id")
+      .select("id, is_deducted")
       .eq("id", params.id)
       .eq("organization_id", auth.organization.id)
       .single();
 
     if (fetchError || !existing) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    if (
+      existing.is_deducted &&
+      (parsed.data.amount != null || parsed.data.advance_date != null)
+    ) {
+      return NextResponse.json(
+        { error: "No se puede editar monto o fecha de un adelanto descontado" },
+        { status: 400 },
+      );
     }
 
     const { data, error } = await supabase

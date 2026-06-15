@@ -215,51 +215,61 @@ Tener un sistema donde un constructor puede crear su cuenta, agregar proyectos, 
 ---
 
 ## FASE 3.5 — Feedback beta en producción
-**Estado: 🟡 EN CURSO (Sprint 07)**  
+**Estado: 🟡 EN CURSO (Sprint 07b)**  
 **Duración:** ~1 semana  
-**Objetivo:** Ajustar planilla y asistente IA según uso real del primer constructor en Vercel.
+**Objetivo:** Completar planilla operativa y UX post-2ª reunión con constructor.
 
-> Origen: `FEEDBACK/beta-constructor-2026-06-12.md`  
-> Plan técnico: `archive/sprint-07-beta-feedback.md`
+> Origen 1ª reunión: `FEEDBACK/beta-constructor-2026-06-12.md`  
+> Origen 2ª reunión: `FEEDBACK/beta-constructor-2026-06-15.md`  
+> Plan técnico: `archive/sprint-07b-payroll-close.md`
 
-### Tareas
+### Sprint 07 ✅ (completado)
 
 ```
-- [ ] Forma de pago: jornal diario vs por contrato (monto manual + nota)
-- [ ] Especialidad custom al registrar trabajador
-- [ ] Adelantos al personal con descuento en planilla semanal
-- [ ] Planilla: desglose bruto / adelantos / pagado / neto al cierre
-- [ ] IA: contexto de materiales por semana (cantidad, costo, etapa)
+- [x] Forma de pago: jornal diario vs por contrato
+- [x] Especialidad custom
+- [x] Adelantos al personal
+- [x] Planilla: bruto / adelantos / neto
+- [x] IA: materiales por semana
 ```
 
-**Acuerdo operativo:** Constructor pausa módulo Personal; resto de app activa.
+### Sprint 07b 🔲 (en curso)
 
-**Criterio de finalización:**
-- Trabajador por contrato registrable con monto y nota del día
-- Adelantos descontados correctamente al cierre de semana
-- IA responde “¿cuánto [material] esta semana?” con detalle
+```
+- [x] Cerrar semana — marcar pagada desde planilla
+- [x] Saldo arrastrado cuando adelanto > bruto
+- [x] Consumo de materiales sin precio/factura
+- [x] Cronograma: retraso con nueva fecha + motivo
+```
+
+**Criterio de finalización 07b:**
+- Constructor cierra semana sin ir día por día
+- Adelanto excesivo aparece descontado la semana siguiente
+- Consumo solo pide cantidad y etapa
 
 ---
 
 ## FASE 4 — Beta Cerrada
 **Estado: 🔲 NO INICIADO**  
-**Duración:** 2 semanas (Sprint 8)  
-**Objetivo:** 5 constructores reales usando el sistema en producción.
+**Duración:** ~2 semanas (Sprint 08a + 08b)  
+**Objetivo:** 5 constructores reales + usabilidad y administración.
 
-### Tareas
+> Plan: `archive/sprint-08a-usability.md`, `archive/sprint-08b-admin.md`
+
+### Sprint 08a — Usabilidad ✅
 
 ```
-- [ ] Onboarding guiado para nuevos constructores
-- [ ] Roles de usuario (constructor / supervisor / oficina / contador)
-- [ ] Configuración de empresa (logo, datos, cambio de contraseña)
-- [ ] PDF portal cliente con branding y descripción de etapas
-- [ ] Módulo 08: Fotografías (clasificación básica con IA)
-- [ ] Módulo 09: Directorio de proveedores
-- [ ] Módulo 14: Alertas de riesgo automáticas
-- [ ] Soporte en tiempo real (chat de soporte)
-- [ ] Recopilación estructurada de feedback
-- [ ] Fix de bugs reportados
-- [ ] Performance tuning
+- [x] QR portal del cliente
+- [x] Editar etapas, presupuestos, movimientos, asistencias, adelantos
+- [x] Páginas /materials y /personal en sidebar
+```
+
+### Sprint 08b — Administración
+
+```
+- [ ] Pantalla /settings (empresa, logo, contraseña)
+- [ ] Gestión de usuarios y roles
+- [ ] PDF portal con branding (R8 de 1ª reunión)
 ```
 
 **Criterio de finalización:**
